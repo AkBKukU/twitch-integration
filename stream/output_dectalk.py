@@ -30,6 +30,10 @@ class OUTDectalk(OUTBase):
 
     def receive_donate(self,from_name,amount,message,benefits=None):
         if amount.endswith("b"):
+            amount = amount.replace("b")
+            if int(amount) < 100:
+                return
+
             # Bits Donate
             self.write(from_name+" says "+message)
 
