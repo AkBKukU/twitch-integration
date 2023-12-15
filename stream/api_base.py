@@ -6,10 +6,6 @@ import asyncio
 from datetime import datetime
 
 class APIbase(APIKey):
-    """Config loading class for saving and loading settings json for programs
-
-    Dynamically creates json file as values are initially requested
-    """
 
     def __init__(self,key_path=None,log=False):
         """Init with file path"""
