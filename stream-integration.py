@@ -1,8 +1,14 @@
 #!/usr/bin/python3
+# Production Imports
 from stream.api_twitch import APItwitch
+from stream.output_dectalk import OUTDectalk
+
+# Test Imports
+#from stream.api_twitch_test import APItwitchTest as APItwitch
+#from stream.output_base import OUTBase as OUTDectalk
+
 import asyncio
 
-from stream.output_dectalk import OUTDectalk
 
 outtest = OUTDectalk()
 

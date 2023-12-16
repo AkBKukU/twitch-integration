@@ -60,9 +60,13 @@ class APItwitch(APIbase):
     async def callback_points(self, uuid: UUID, data: dict):
         #print('got callback for UUID ' + str(uuid))
         self.log("callback_points",json.dumps(data))
+        if hasattr(data['data']['redemption'], 'user_input'):
+            text=data['data']['redemption']['user_input']
+        else:
+            text=""
         self.emit_interact(data['data']['redemption']['user']['display_name'],
                             data['data']['redemption']['reward']['title'],
-                            data['data']['redemption']['user_input']
+                            text
                             )
         return
 
@@ -71,7 +75,7 @@ class APItwitch(APIbase):
         self.log("callback_bits",json.dumps(data))
 
         self.emit_donate(data['data']['user_name'],
-                            data['data']['bits_used']+"b",
+                            str(data['data']['bits_used'])+"b",
                             data['data']['chat_message']
                             )
         return
@@ -108,7 +112,7 @@ class APItwitch(APIbase):
             line=str(data['display_name'])
             line += " subbed as "+sub_type+" "+sub_len+" and says "+str(data['sub_message']['message'])
 
-        self.emit_donate(data['data']['user_name'],
+        self.emit_donate(data['user_name'],
                             str(sub['sub_plan'])+"s",
                             line
                             )

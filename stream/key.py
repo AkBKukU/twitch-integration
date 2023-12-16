@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from stream.jsonify import JSONify
+import os.path
 
 class APIKey(JSONify):
     """Wrapper interface for handling API key
@@ -10,6 +11,10 @@ class APIKey(JSONify):
 
     def __init__(self,json_path):
         """Initialize and load key from JSON if provided"""
+
+        if not os.path.isfile(json_path):
+            return
+
         super(APIKey, self).__init__(json_path)
         if hasattr(self, 'installed'):
             self._client_id = self.installed["client_id"]
