@@ -5,21 +5,42 @@ import serial
 import re
 
 class OUTDectalk(OUTBase):
+    """DECTalk receiver for interaction
+
+    Sends messages over serial to a DECTalk with some bootstrapping to make it work better
+    """
 
     def __init__(self):
-        """Init with file path"""
         super().__init__()
         self.service_name = "DECTalk"
 
     def write(self,text):
+        """Write data to serial port to DECTalk"""
+
+        # Santize text
         text = self.clean(text)
-        ser = serial.Serial('/dev/ttyUSB0',9600,timeout=1)  # open serial port
-        ser.write( bytes("[:punct none]"+str(text)+str('[:nh][:dv ap 90 pr 0].[:rate 140]END OF LINE.[:np][:pp 0 :cp 0][:rate 200][:say line][:punct none][:pitch 35][:phoneme off][:volume set 33]\r\n'),'ascii',errors='ignore') )
+
+        # Pre/post boilerplate to standardize DECTalk options
+        prefix="[:punct none]"
+        postfix=str('[:nh][:dv ap 90 pr 0].[:rate 140]END OF LINE.[:np][:pp 0 :cp 0][:rate 200][:say line][:punct none][:pitch 35][:phoneme off][:volume set 33]\r\n')
+
+        # Send data to DECTalk
+        with serial.Serial('/dev/ttyUSB0',9600,timeout=1) as ser:
+            ser.write( bytes(prefix+str(text)+postfix,'ascii',errors='ignore') )
         return
 
 
     def clean(self,text):
+        """Clean up text before sending to DECTalk"""
+
+        """Note:
+        It is pretty much impossible to fully counteract abusive text sent to a DECTalk,
+        especially a real hardware device. Phoneme mode will allow making custom words
+        defeating any filtering. This is more for removing lazy attempts to break it.
+        """
         text = text.replace("google", "")
+        text = text.replace("alexa", "")
+        text = text.replace("siri", "")
         text = text.replace(":period", ":rate")
         text = text.replace(":comma", ":rate")
         text = re.sub(":volume\s+set", ":np] . Volume Override[:rate ",text)
@@ -29,21 +50,28 @@ class OUTDectalk(OUTBase):
 
 
     def receive_donate(self,from_name,amount,message,benefits=None):
+        """Respond to bit and sub messages"""
+
+        # Bits
         if amount.endswith("b"):
             amount = amount.replace("b")
+            # Set minimum donation at 100 bits to trigger DECTalk
             if int(amount) < 100:
                 return
 
-            # Bits Donate
+            # Send nessage
             self.write(from_name+" says "+message)
 
-
+        # Subs
         if amount.endswith("s"):
-            # Sub
+            # Send nessage
             self.write(message)
         return
 
     def receive_interact(self,from_name,kind,message):
+        """Respond to interactions"""
+
+        # Note: I don't use the point rewards for DECTalk currently
         if kind == "API Test":
             self.write(from_name+" did "+kind+" and said "+message)
         return

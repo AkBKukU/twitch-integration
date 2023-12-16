@@ -12,10 +12,12 @@ class APIKey(JSONify):
     def __init__(self,json_path):
         """Initialize and load key from JSON if provided"""
 
+        # Check for json file
         if not os.path.isfile(json_path):
             return
 
         super(APIKey, self).__init__(json_path)
+        # Normalize API keys
         if hasattr(self, 'installed'):
             self._client_id = self.installed["client_id"]
             self._client_secret = self.installed["client_secret"]
