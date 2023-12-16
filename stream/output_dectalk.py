@@ -54,7 +54,7 @@ class OUTDectalk(OUTBase):
 
         # Bits
         if amount.endswith("b"):
-            amount = amount.replace("b")
+            amount = amount.replace("b","")
             # Set minimum donation at 100 bits to trigger DECTalk
             if int(amount) < 100:
                 return
