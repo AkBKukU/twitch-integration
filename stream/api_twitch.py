@@ -97,28 +97,38 @@ class APItwitch(APIbase):
                             )
         return
 
+    # Mapping of known sub plans to plain-English names
+    _sub_types = {
+        "1000": "tier one",
+        "2000": "tier two",
+        "3000": "tier three",
+        "Prime": "prime"
+    }
+
+    def _get_sub_type(self, sub_plan: str):
+        """Returns a plain-English version of sub plan level if available."""
+
+        return APItwitch._sub_types.get(sub_plan, "")
 
     async def callback_subs(self, uuid: UUID, data: dict):
         """Subscription handler"""
         self.log("callback_subs",json.dumps(data))
 
         # Get plain english version of sub level
-        sub_type=""
-        if (str(data['sub_plan']) == "1000"):
-            sub_type="tier one"
-        if (str(data['sub_plan']) == "2000"):
-            sub_type="tier two"
-        if (str(data['sub_plan']) == "3000"):
-            sub_type="tier three"
-        if (str(data['sub_plan']) == "Prime"):
-            sub_type="prime"
+        sub_type = self._get_sub_type(str(data['sub_plan']))
 
         # Determine length of sub
+        sub_months=1
         sub_len=""
+
         if ('benefit_end_month' in data and data['benefit_end_month'] != 0):
-            sub_len="for "+str(int(data['benefit_end_month'])+1)+" months"
+            sub_months = int(data['benefit_end_month']) + 1
+
         if ('multi_month_duration' in data and data['multi_month_duration'] > 1):
-            sub_len="for "+str(data['multi_month_duration'])+" months"
+            sub_months = int(data['multi_month_duration'])
+
+        if sub_months > 1:
+            sub_len = "for " + str(sub_months) + " months"
 
         # Sub type and build output message
         line=""
@@ -137,4 +147,3 @@ class APItwitch(APIbase):
                             line
                             )
         return
-
