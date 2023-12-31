@@ -114,12 +114,8 @@ class APItwitch(APIbase):
         """Subscription handler"""
         self.log("callback_subs",json.dumps(data))
 
-        # Get plain english version of sub level
-        sub_type = self._get_sub_type(str(data['sub_plan']))
-
         # Determine length of sub
         sub_months=1
-        sub_len=""
 
         if ('benefit_end_month' in data and data['benefit_end_month'] != 0):
             sub_months = int(data['benefit_end_month']) + 1
@@ -127,23 +123,93 @@ class APItwitch(APIbase):
         if ('multi_month_duration' in data and data['multi_month_duration'] > 1):
             sub_months = int(data['multi_month_duration'])
 
+        # Extract other request fields
+        user_name = data['user_name']
+        display_name = str(data['display_name'])
+        sub_plan = str(data['sub_plan'])
+        context = str(data['context'])
+
+        # Gifted subs need to be coalesced before they can be formatted
+        if context ==  "subgift":
+            self._coalesce_gifted_sub(user_name,
+                                      display_name,
+                                      sub_plan,
+                                      sub_months,
+                                      str(data['recipient_display_name']))
+
+        elif context ==  "anonsubgift" or context ==  "anonresubgift":
+            self._coalesce_gifted_sub(user_name,
+                                      "Anonymous gifter",
+                                      sub_plan,
+                                      sub_months,
+                                      str(data['recipient_display_name']))
+
+        else:
+            # ... but a user's own sub will always be a single event so
+            # format it here and send it straight through.
+
+            # Find plain-English plan name and sub length
+            sub_type = self._get_sub_type(sub_plan)
+            sub_len = ""
+            if sub_months > 1:
+                sub_len = "for " + str(sub_months) + " months"
+
+            line = (display_name + " subbed as " + sub_type + " " + sub_len +
+                    " and says " + str(data['sub_message']['message']))
+
+            # Send data to receivers
+            self.emit_donate(user_name, sub_plan+"s", line)
+
+        return
+
+    async def _coalesce_gifted_sub(self,
+                                   user_name: str,
+                                   display_name: str,
+                                   sub_plan: str,
+                                   sub_months: int,
+                                   recipient: str):
+        """Coalesce potentially several gift subs into one event.
+        
+        Since Twitch delivers (only) individual gift sub events even if a user
+        has donated several in one go, we want to group these together into
+        one event that we can process as a single message.  This needs to be
+        done based on a combination of the donor name, the sub plan and the sub
+        length (all of which we include in the message text where applicable),
+        with only the recipient names varying in each coalesced event."""
+
+        # Stubbed out for the moment - pass each event through as an individual
+        # item, the same way we currently handle them.
+        await self.callback_gifted_sub_list(user_name,
+                                            display_name,
+                                            sub_plan,
+                                            sub_months,
+                                            [recipient])
+
+    async def callback_gifted_sub_list(self,
+                                       user_name: str,
+                                       display_name: str,
+                                       sub_plan: str,
+                                       sub_months: int,
+                                       recipients: list):
+        """Gifted sub handler, for potentially multiple recipients."""
+
+        # Find plain-English version of sub plan, number of recipients and
+        # length of gifted sub if not a single month.
+        sub_len = ""
+        sub_type = self._get_sub_type(sub_plan)
+        gift_count = len(recipients)
         if sub_months > 1:
             sub_len = "for " + str(sub_months) + " months"
 
-        # Sub type and build output message
-        line=""
-        if str(data['context']) ==  "subgift":
-            line=str(data['display_name'])
-            line += " gave a "+sub_type+" gift sub "+sub_len+" to "+str(data['recipient_display_name'])
-        elif str(data['context']) ==  "anonsubgift" or str(data['context']) ==  "anonresubgift":
-            line += "Anonymous gifter gave a "+sub_type+" gift sub "+sub_len+" to "+str(data['recipient_display_name'])
+        # Format appropriately as a single gift or a list of names.
+        line = ""
+        if gift_count == 1:
+            line = (display_name + " gave a " + sub_type + " gift sub " +
+                    sub_len + " to " + recipients[0])
         else:
-            line=str(data['display_name'])
-            line += " subbed as "+sub_type+" "+sub_len+" and says "+str(data['sub_message']['message'])
+            recipients[-1] = "and " + recipients[-1]
+            line = (display_name + " gave " + str(gift_count) + " " + sub_type +
+                    " gift subs " + sub_len + " to " + ", ".join(recipients))
 
         # Send data to receivers
-        self.emit_donate(data['user_name'],
-                            str(data['sub_plan'])+"s",
-                            line
-                            )
-        return
+        self.emit_donate(user_name, sub_plan+"s", line)
