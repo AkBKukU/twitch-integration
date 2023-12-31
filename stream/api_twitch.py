@@ -6,6 +6,8 @@ from twitchAPI.pubsub import PubSub
 from twitchAPI.helper import first
 from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.type import AuthScope
+from utils.coalescer import EventCoalescer
+from collections import namedtuple
 
 from pprint import pprint
 import asyncio
@@ -162,6 +164,21 @@ class APItwitch(APIbase):
 
         return
 
+    # use a tuple of (user_name, display_name, sub_plan, sub_months) to group
+    # gift subs together; make it a named tuple for ease of reading!
+    _GiftSubContext = namedtuple('GiftSubContext',
+                                 ['user_name',
+                                  'display_name',
+                                  'sub_plan',
+                                  'sub_months'])
+
+    # dict to contain all our coalescers for incoming gift subs, keyed by above
+    _giftsub_coalescers = {}
+
+    # time (in seconds) to wait after the last gifted sub before
+    # generating a message covering the entire list
+    GIFTSUB_COALESCE_TIMEOUT = 2.0
+
     async def _coalesce_gifted_sub(self,
                                    user_name: str,
                                    display_name: str,
@@ -177,13 +194,37 @@ class APItwitch(APIbase):
         length (all of which we include in the message text where applicable),
         with only the recipient names varying in each coalesced event."""
 
-        # Stubbed out for the moment - pass each event through as an individual
-        # item, the same way we currently handle them.
-        await self.callback_gifted_sub_list(user_name,
-                                            display_name,
-                                            sub_plan,
-                                            sub_months,
-                                            [recipient])
+        def _coalescer_callback(context, recipients):
+            """Internal callback to unpack context from EventCoalescer."""
+
+            # Unpack the context object and forward events to outer callback
+            self.callback_gifted_sub_list(context.user_name,
+                                          context.display_name,
+                                          context.sub_plan,
+                                          context.sub_months,
+                                          recipients)
+
+        # Create a context tuple which will be used both as a key into the
+        # _giftsub_coalescers dict and as a context object for our internal
+        # callback, _coalescer_callback.
+        context = self._GiftSubContext(user_name,
+                                       display_name,
+                                       sub_plan,
+                                       sub_months)
+
+        if context in self._giftsub_coalescers:
+            # We already have a coalescer for this event, so we can just add it
+            self._giftsub_coalescers[context].add_event(recipient)
+
+        else:
+            # We don't yet have a coalescer for this event, so create a new one
+            # and add the new (first) event to it
+            coalescer = EventCoalescer(self.GIFTSUB_COALESCE_TIMEOUT,
+                                       context,
+                                       _coalescer_callback)
+
+            self._giftsub_coalescers[context] = coalescer
+            coalescer.add_event(recipient)
 
     async def callback_gifted_sub_list(self,
                                        user_name: str,
