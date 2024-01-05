@@ -17,7 +17,7 @@ outcall = OUTCall("192.168.1.219")
 
 
 print("Starting Stream Integration")
-twitch = APItwitch(Path.home()+"/.api/twitch.json")
+twitch = APItwitch(str(Path.home())+"/.api/twitch.json")
 twitch.register_interact(outtest.receive_interact)
 twitch.register_interact(outcall.receive_interact)
 
@@ -25,7 +25,7 @@ twitch.register_donate(outtest.receive_donate)
 
 asyncio.run(twitch.connect())
 
-input('press ENTER to close...')
+input('press ENTER to close...\n')
 
 asyncio.run(twitch.disconnect())
 
