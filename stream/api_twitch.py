@@ -6,6 +6,7 @@ from twitchAPI.pubsub import PubSub
 from twitchAPI.helper import first
 from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.type import AuthScope
+from twitchAPI.chat import Chat, ChatMessage, ChatEvent
 
 from pprint import pprint
 import asyncio
@@ -34,7 +35,9 @@ class APItwitch(APIbase):
         target_scope = [
             AuthScope.CHANNEL_READ_REDEMPTIONS,
             AuthScope.BITS_READ,
-            AuthScope.CHANNEL_READ_SUBSCRIPTIONS
+            AuthScope.CHANNEL_READ_SUBSCRIPTIONS,
+            AuthScope.CHAT_READ,
+            AuthScope.CHAT_EDIT
         ]
         # Build user auth
         auth = UserAuthenticator(self.api, target_scope, force_verify=False)
@@ -50,10 +53,17 @@ class APItwitch(APIbase):
         self.pubsub = PubSub(self.api)
         self.pubsub.start()
 
+        # Get chat interface
+        self.chat = await Chat(self.api, initial_channel=['TechTangents'])
+
         # Register callbacks for pubsub actions
         self.uuid_points = await self.pubsub.listen_channel_points(self.user.id, self.callback_points)
         self.uuid_bits = await self.pubsub.listen_bits(self.user.id, self.callback_bits)
         self.uuid_subs = await self.pubsub.listen_channel_subscriptions(self.user.id, self.callback_subs)
+
+
+        self.chat.register_event(ChatEvent.MESSAGE, self.callback_chat)
+        self.chat.start()
 
         return
 
@@ -65,6 +75,9 @@ class APItwitch(APIbase):
         await self.pubsub.unlisten(self.uuid_bits)
         await self.pubsub.unlisten(self.uuid_subs)
         self.pubsub.stop()
+
+        # End chat
+        self.chat.stop()
 
         # Close API
         await self.api.close()
@@ -83,6 +96,11 @@ class APItwitch(APIbase):
                             data['data']['redemption']['reward']['title'],
                             text
                             )
+        return
+
+    async def callback_chat(self, chat: ChatMessage):
+        #self.log("callback_chat",json.dumps(chat))
+        print(chat.text)
         return
 
 

@@ -36,6 +36,8 @@ class APIbase(APIKey):
         """Return name of service"""
         return self.service_name
 
+# API Connection
+
     def connect(self):
         """Dummy service connection"""
         print("No service to connect to.")
@@ -45,6 +47,26 @@ class APIbase(APIKey):
         """Dummy service disconnect"""
         print("No service to disconnect from.")
         return
+
+# Signals Chat
+
+    def register_chat(self,callback):
+        """Store callback receiver for chat"""
+        self.callbacks_chat.append(callback)
+        return
+
+    def emit_chat(self,from_name,amount,message):
+        """Call stored receivers for chat"""
+        for callback in self.callbacks_chat:
+            callback(from_name,amount,message)
+        return
+
+    def receive_chat(self,from_name,amount,message):
+        """Output message to CLI for chat"""
+        print(from_name+" gave "+amount+" and said "+message)
+        return
+
+# Signals Donate
 
     def register_donate(self,callback):
         """Store callback receiver for donation"""
@@ -57,6 +79,12 @@ class APIbase(APIKey):
             callback(from_name,amount,message)
         return
 
+    def receive_donate(self,from_name,amount,message):
+        """Output message to CLI for donate"""
+        print(from_name+" gave "+amount+" and said "+message)
+        return
+
+# Signals Interact
 
     def register_interact(self,callback):
         """Store callback receiver for interation"""
@@ -68,4 +96,9 @@ class APIbase(APIKey):
         """Call stored receivers for interaction"""
         for callback in self.callbacks_interact:
             callback(from_name,kind,message)
+        return
+
+    def receive_interact(self,from_name,kind,message):
+        """Output message to CLI for interaction"""
+        print(from_name+" did "+kind+" and said "+message)
         return

@@ -3,6 +3,7 @@
 from stream.api_twitch import APItwitch
 from stream.output_dectalk import OUTDectalk
 from stream.output_call import OUTCall
+from pathlib import Path
 
 # Test Imports
 #from stream.api_twitch_test import APItwitchTest as APItwitch
@@ -16,7 +17,7 @@ outcall = OUTCall("192.168.1.219")
 
 
 print("Starting Stream Integration")
-twitch = APItwitch("/home/akbkuku/client.json")
+twitch = APItwitch(Path.home()+"/.api/twitch.json")
 twitch.register_interact(outtest.receive_interact)
 twitch.register_interact(outcall.receive_interact)
 

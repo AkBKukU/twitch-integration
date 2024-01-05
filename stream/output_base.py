@@ -17,3 +17,4 @@ class OUTBase(object):
         """Output message to CLI for interaction"""
         print(from_name+" did "+kind+" and said "+message)
         return
+
