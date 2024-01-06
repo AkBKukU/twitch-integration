@@ -18,6 +18,7 @@ class APIbase(APIKey):
         self.api = None
         self.callbacks_donate=[]
         self.callbacks_interact=[]
+        self.callbacks_chat=[]
 
     def log(self,filename,text):
         """logging output for data"""
@@ -55,15 +56,15 @@ class APIbase(APIKey):
         self.callbacks_chat.append(callback)
         return
 
-    def emit_chat(self,from_name,amount,message):
+    def emit_chat(self,data):
         """Call stored receivers for chat"""
         for callback in self.callbacks_chat:
-            callback(from_name,amount,message)
+            callback(data)
         return
 
-    def receive_chat(self,from_name,amount,message):
+    def receive_chat(self,data):
         """Output message to CLI for chat"""
-        print(from_name+" gave "+amount+" and said "+message)
+        print(data["from"]+" gave "+str(data["donate"])+" and said "+data["text"])
         return
 
 # Signals Donate

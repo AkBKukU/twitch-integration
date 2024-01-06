@@ -1,7 +1,8 @@
 #!/usr/bin/python3
+from stream.api_base import APIbase
 
 
-class OUTBase(object):
+class OUTBase(APIbase):
     """Simple CLI output receiver
     """
 

@@ -53,6 +53,13 @@ class APItwitchTest(APItwitch):
                     asyncio.run(self.callback_subs("1337", data))
                 os.rename(subs,"test/done_subs.json")
 
+            message={
+                    "from": "Fred",
+                    "color": "#FF0000",
+                    "text": "Right",
+                    "donate": 0
+                }
+            self.emit_chat(message)
         return
 
 

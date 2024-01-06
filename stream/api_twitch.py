@@ -101,12 +101,13 @@ class APItwitch(APIbase):
     async def callback_chat(self, chat: ChatMessage):
         message={
                 "from": chat.user.name,
+                "color": chat.user.color,
                 "text": chat.text,
                 "donate": chat.bits
             }
 
         self.log("callback_chat",json.dumps(message))
-        print(message["from"] +": "+message["text"])
+        self.emit_chat(message)
         return
 
 
