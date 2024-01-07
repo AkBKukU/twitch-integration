@@ -7,6 +7,7 @@ from uuid import UUID
 import json
 import time
 import os
+from datetime import datetime
 
 from multiprocessing import Process, Manager, Value, Array
 
@@ -57,6 +58,7 @@ class APItwitchTest(APItwitch):
                     "from": "Fred",
                     "color": "#FF0000",
                     "text": "Right",
+                    "time": str(datetime.now().isoformat()).replace(":","-"),
                     "donate": 0
                 }
             self.emit_chat(message)
