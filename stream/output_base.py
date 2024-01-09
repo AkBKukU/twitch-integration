@@ -7,6 +7,7 @@ class OUTBase(APIbase):
     """
 
     def __init__(self):
+        super().__init__(None)
         self.service_name = "Base"
 
     def receive_donate(self,from_name,amount,message):
@@ -19,3 +20,13 @@ class OUTBase(APIbase):
         print(from_name+" did "+kind+" and said "+message)
         return
 
+    async def print_loop(self):
+        print("Some text")
+        return
+
+
+    async def connect(self):
+        """Override parent API connection and start background test"""
+
+        self.delay_callback("print_loop", 1, self.print_loop)
+        return

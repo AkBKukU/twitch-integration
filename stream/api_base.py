@@ -35,13 +35,13 @@ class APIbase(APIKey):
         return
 
     async def delay(self, time_ms, callback):
-        print("Sleeping: " + str(time_ms))
+        #print("Sleeping: " + str(time_ms))
         await asyncio.sleep(time_ms)
-        print("calling")
+        #print("calling")
         await callback()
 
     def delay_callback(self, name, time_ms, callback):
-        print("Adding delay: "+name)
+        #print("Adding delay: "+name)
         self.tasks[name] = asyncio.ensure_future(self.delay(time_ms, callback))
 
     def name(self):

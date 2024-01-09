@@ -13,7 +13,7 @@ class APIKey(JSONify):
         """Initialize and load key from JSON if provided"""
 
         # Check for json file
-        if not os.path.isfile(json_path):
+        if json_path is None:
             return
 
         super(APIKey, self).__init__(json_path)

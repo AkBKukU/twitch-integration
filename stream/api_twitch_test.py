@@ -83,6 +83,7 @@ class APItwitchTest(APItwitch):
                 "donate": 0
             }
         self.emit_chat(message)
+        self.delay_callback("fake_data", 1, self.process)
         return
 
 
