@@ -19,6 +19,7 @@ class APIbase(APIKey):
         self.callbacks_donate=[]
         self.callbacks_interact=[]
         self.callbacks_chat=[]
+        self.tasks={}
 
     def log(self,filename,text):
         """logging output for data"""
@@ -32,6 +33,16 @@ class APIbase(APIKey):
         with open(filepath, 'w', encoding="utf-8") as output:
             output.write(text)
         return
+
+    async def delay(self, time_ms, callback):
+        print("Sleeping: " + str(time_ms))
+        await asyncio.sleep(time_ms)
+        print("calling")
+        await callback()
+
+    def delay_callback(self, name, time_ms, callback):
+        print("Adding delay: "+name)
+        self.tasks[name] = asyncio.ensure_future(self.delay(time_ms, callback))
 
     def name(self):
         """Return name of service"""

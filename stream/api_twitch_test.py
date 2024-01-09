@@ -37,52 +37,52 @@ class APItwitchTest(APItwitch):
             {"from":"A","color":""}
         ]
 
-    def process(self):
+    async def process(self):
         """multiprocess background task to look for test files"""
-        while(True):
-            time.sleep(1)
+        #while(True):
+            #time.sleep(1)
+        print("Process run")
+        # Check for point redeem
+        points="test/points.json"
+        if os.path.isfile(points):
+            with open(points, 'r') as f:
+                data = json.load(f)
+                asyncio.run(self.callback_points("1337", data))
+            os.rename(points,"test/done_points.json")
 
-            # Check for point redeem
-            points="test/points.json"
-            if os.path.isfile(points):
-                with open(points, 'r') as f:
-                    data = json.load(f)
-                    asyncio.run(self.callback_points("1337", data))
-                os.rename(points,"test/done_points.json")
+        # Check for bit cheer
+        bits="test/bits.json"
+        if os.path.isfile(bits):
+            with open(bits, 'r') as f:
+                data = json.load(f)
+                asyncio.run(self.callback_bits("1337", data))
+            os.rename(bits,"test/done_bits.json")
 
-            # Check for bit cheer
-            bits="test/bits.json"
-            if os.path.isfile(bits):
-                with open(bits, 'r') as f:
-                    data = json.load(f)
-                    asyncio.run(self.callback_bits("1337", data))
-                os.rename(bits,"test/done_bits.json")
+        # Check for subs
+        subs="test/subs.json"
+        if os.path.isfile(subs):
+            with open(subs, 'r') as f:
+                data = json.load(f)
+                asyncio.run(self.callback_subs("1337", data))
+            os.rename(subs,"test/done_subs.json")
 
-            # Check for subs
-            subs="test/subs.json"
-            if os.path.isfile(subs):
-                with open(subs, 'r') as f:
-                    data = json.load(f)
-                    asyncio.run(self.callback_subs("1337", data))
-                os.rename(subs,"test/done_subs.json")
+        # Create random colors from names
+        random.shuffle(self.fake_names)
+        color="#"
+        for c in list((self.fake_names[0]["from"]+"mmm").replace(" ","").lower()[:3].encode('ascii')):
+            c=(c-80)
+            c=c*6
+            color+=str(hex(c))[2:]
 
-            # Create random colors from names
-            random.shuffle(self.fake_names)
-            color="#"
-            for c in list((self.fake_names[0]["from"]+"mmm").replace(" ","").lower()[:3].encode('ascii')):
-                c=(c-80)
-                c=c*6
-                color+=str(hex(c))[2:]
-
-            # Build chat message
-            message={
-                    "from": self.fake_names[0]["from"],
-                    "color": color,
-                    "text": "Right "+str(datetime.now().isoformat()).replace(":","-"),
-                    "time": str(datetime.now().isoformat()).replace(":","-"),
-                    "donate": 0
-                }
-            self.emit_chat(message)
+        # Build chat message
+        message={
+                "from": self.fake_names[0]["from"],
+                "color": color,
+                "text": "Right "+str(datetime.now().isoformat()).replace(":","-"),
+                "time": str(datetime.now().isoformat()).replace(":","-"),
+                "donate": 0
+            }
+        self.emit_chat(message)
         return
 
 
@@ -91,11 +91,13 @@ class APItwitchTest(APItwitch):
         print("Not Connecting to twitch")
 
         # Create background process
-        proc = Process(target=self.process, args=())  # instantiating without any argument
-        self.procs.append(proc)
+        #proc = Process(target=self.process, args=())  # instantiating without any argument
+        #self.procs.append(proc)
 
         # Start test checking
-        proc.start()
+        #proc.start()
+
+        self.delay_callback("fake_data", 1, self.process)
         return
 
     async def disconnect(self):
