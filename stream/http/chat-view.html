@@ -20,10 +20,12 @@ function json_read(chat_data)
         var name = document.createElement("span");
         name.innerHTML = c['from'];
         name.style.color = c['color'];
+        name.classList.add("name");
         li.appendChild(name)
 
         var text = document.createElement("span");
         text.innerHTML = ": " + c['text'];
+        text.classList.add("text");
         li.appendChild(text)
 
         chat_list.appendChild(li)
