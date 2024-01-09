@@ -39,9 +39,6 @@ class APItwitchTest(APItwitch):
 
     async def process(self):
         """multiprocess background task to look for test files"""
-        #while(True):
-            #time.sleep(1)
-        print("Process run")
         # Check for point redeem
         points="test/points.json"
         if os.path.isfile(points):
@@ -83,23 +80,16 @@ class APItwitchTest(APItwitch):
                 "donate": 0
             }
         self.emit_chat(message)
-        self.delay_callback("fake_data", 1, self.process)
+        self.delay_callback("fake_data", 1000, self.process)
         return
 
 
     async def connect(self):
         """Override parent API connection and start background test"""
         print("Not Connecting to twitch")
-
-        # Create background process
-        #proc = Process(target=self.process, args=())  # instantiating without any argument
-        #self.procs.append(proc)
-
-        # Start test checking
-        #proc.start()
-
-        self.delay_callback("fake_data", 1, self.process)
+        self.delay_callback("fake_data", 1000, self.process)
         return
+
 
     async def disconnect(self):
         """Override parent API connection and end background test"""

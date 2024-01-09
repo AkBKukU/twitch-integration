@@ -34,19 +34,21 @@ class APIbase(APIKey):
             output.write(text)
         return
 
-    async def delay(self, time_ms, callback):
-        #print("Sleeping: " + str(time_ms))
-        await asyncio.sleep(time_ms)
-        #print("calling")
-        await callback()
-
-    def delay_callback(self, name, time_ms, callback):
-        #print("Adding delay: "+name)
-        self.tasks[name] = asyncio.ensure_future(self.delay(time_ms, callback))
-
     def name(self):
         """Return name of service"""
         return self.service_name
+
+# Internal Function Timing
+
+    async def delay(self, time_ms, callback):
+        """ Delay execution of callback function """
+        await asyncio.sleep(time_ms/1000.0)
+        await callback()
+
+    def delay_callback(self, name, time_ms, callback):
+        """ Register delayed callback  """
+        self.tasks[name] = asyncio.ensure_future(self.delay(time_ms, callback))
+
 
 # API Connection
 
