@@ -25,8 +25,9 @@ class APIhttp(APIbase):
         self.app = Flask("The Web: Now with 100% More OOP")
 
         # Define routes in class to use with flask
-        self.app.add_url_rule('/index.html','1', self.index)
-        self.app.add_url_rule('/data.json','2', self.data)
+        self.app.add_url_rule('/','home', self.index)
+        self.app.add_url_rule('/chat/','chat', self.chat)
+        self.app.add_url_rule('/chat/data.json','data', self.data)
 
         # Set headers for server
         self.app.after_request(self.add_header)
@@ -48,7 +49,7 @@ class APIhttp(APIbase):
 
     def connect(self):
         """ Run Flask in a process thread that is non-blocking """
-        self.web_thread = Process(target=self.app.run, kwargs={"host":"0.0.0.0"})
+        self.web_thread = Process(target=self.app.run, kwargs={"host":"0.0.0.0","port":5001})
         self.web_thread.start()
 
     def disconnect(self):
@@ -60,7 +61,13 @@ class APIhttp(APIbase):
 
     def index(self):
         """ Simple class function to send HTML to browser """
-        return   "<h1>Sup</h1>"
+        return """
+<a href="/chat/"><h2>Chat</h2></a>
+        """
+
+    def chat(self):
+        """ Simple class function to send HTML to browser """
+        return send_file("stream/http/chat-view.html")
 
     def data(self):
         """ Simple class function to send JSON to browser """

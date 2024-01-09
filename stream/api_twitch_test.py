@@ -8,6 +8,7 @@ import json
 import time
 import os
 from datetime import datetime
+import random
 
 from multiprocessing import Process, Manager, Value, Array
 
@@ -23,7 +24,18 @@ class APItwitchTest(APItwitch):
         super().__init__(key_path)
         self.service_name = "TwitchTest"
         self.procs = []
-
+        self.fake_names=[
+            {"from":"Fred","color":""},
+            {"from":"Felicia","color":""},
+            {"from":"Bob","color":""},
+            {"from":"Betty","color":""},
+            {"from":"James","color":""},
+            {"from":"Jane","color":""},
+            {"from":"Z AA","color":""},
+            {"from":"A ZA","color":""},
+            {"from":"A AZ","color":""},
+            {"from":"A","color":""}
+        ]
 
     def process(self):
         """multiprocess background task to look for test files"""
@@ -54,10 +66,19 @@ class APItwitchTest(APItwitch):
                     asyncio.run(self.callback_subs("1337", data))
                 os.rename(subs,"test/done_subs.json")
 
+            # Create random colors from names
+            random.shuffle(self.fake_names)
+            color="#"
+            for c in list((self.fake_names[0]["from"]+"mmm").replace(" ","").lower()[:3].encode('ascii')):
+                c=(c-80)
+                c=c*6
+                color+=str(hex(c))[2:]
+
+            # Build chat message
             message={
-                    "from": "Fred",
-                    "color": "#FF0000",
-                    "text": "Right",
+                    "from": self.fake_names[0]["from"],
+                    "color": color,
+                    "text": "Right "+str(datetime.now().isoformat()).replace(":","-"),
                     "time": str(datetime.now().isoformat()).replace(":","-"),
                     "donate": 0
                 }
