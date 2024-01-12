@@ -1,0 +1,21 @@
+#body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
+
+#chat-container {
+  height: 730px;
+  width: 450px;
+  margin: 0px;
+  display: flex;
+  overflow: hidden;
+}
+
+#chat-list li{
+  margin-left: -1em;
+}
+#chat-list{
+  margin: 0px;
+  list-style-type: none;
+  overflow: hidden;
+  color: white;
+  font-size: 1.7em;
+  align-self: flex-end;
+}
