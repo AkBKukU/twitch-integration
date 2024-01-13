@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 from stream.api_base import APIbase
 
+import google_auth_oauthlib.flow
+import googleapiclient.discovery
+import googleapiclient.errors
+
 from pprint import pprint
 import json
 
@@ -47,6 +51,24 @@ class APIyoutube(APIbase):
     def connect(self):
         """Connect to Twith API"""
         print("Connect to youtube")
+
+        api_service_name = "youtube"
+        api_version = "v3"
+        client_secrets_file = "YOUR_CLIENT_SECRET_FILE.json"
+
+        scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
+
+        flow = OAuth2WebServerFlow(
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            scope=self.build_scope(),
+            redirect_uri="http://localhost"
+        )
+
+        # TODO - Fix token location
+        storage = Storage(GoogleAPIBase.storage_file)
+        GoogleAPIBase.credentials = storage.get()
+
         self.api = await Twitch(self.client_id, self.client_secret)
 
 
@@ -81,7 +103,14 @@ class APIyoutube(APIbase):
             Start chat polling if there is am active broadcast
         """
         self.broadcast_active=False
-        broadcasts = [] # fill with API call
+
+        request = self.api.liveBroadcasts().list(
+            part="snippet,contentDetails,status",
+            broadcastType="all",
+            mine=True
+        )
+
+        broadcasts = request.execute() # fill with API call
         self.broadcasts=[]
         self.broadcast_index=0
         for index, b in broadcasts:
@@ -122,8 +151,11 @@ class APIyoutube(APIbase):
 
             If there are no new messages check if stream is still live
         """
-
-        chat={} # fill with API call
+        request = self.api.liveChatMessages().list(
+            liveChatId="YOUR_CHAT_ID",
+            part="snippet,authorDetails"
+        )
+        chat = request.execute() # fill with API call
 
         self.chat_token = chat['nextPageToken']
 
