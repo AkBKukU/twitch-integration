@@ -99,9 +99,20 @@ class APItwitch(APIbase):
         return
 
     async def callback_chat(self, chat: ChatMessage):
+
+        if chat.user.color == None:
+             # Create random colors from names
+            color="#"
+            for c in list((chat.user.name+"mmm").replace(" ","").lower()[:3].encode('ascii')):
+                c=(c-80)
+                c=c*6
+                color+=str(hex(c))[2:]
+        else:
+            color = chat.user.color
+
         message={
                 "from": chat.user.name,
-                "color": chat.user.color,
+                "color": color,
                 "text": chat.text,
                 "donate": chat.bits
             }
