@@ -37,29 +37,122 @@ class APIyoutube(APIbase):
         super().__init__(key_path)
         self.service_name = "Youtube"
 
+        # Stream info
+        self.broadcasts=[]
+        self.broadcast_index=0
+        self.broadcast_active=False
+        self.chat_token=None
 
-    async def connect(self):
+
+    def connect(self):
         """Connect to Twith API"""
         print("Connect to youtube")
+        self.api = await Twitch(self.client_id, self.client_secret)
+
 
         return
 
 
-    async def disconnect(self):
+    def disconnect(self):
         """Gracefully disconnect from Twith API"""
 
         return
 
 
-    async def callback_chat(self, chat: ChatMessage):
-        message={
-                "from": chat.user.name,
-                "color": chat.user.color,
-                "text": chat.text,
-                "donate": chat.bits
-            }
+    def b_active(self, status):
+        """ Validate stream is active """
+        s={
+            "complete": False,
+            "created": False,
+            "ready": False,
+            "revoked": False,
+            "testStarting": True,
+            "testing": True,
+            "live": True,
+            "liveStarting": True,
+        }
+        return s[status]
 
-        self.log("callback_chat",json.dumps(message))
-        self.emit_chat(message)
+
+    async def get_broadcasts(self):
+        """ Get a list of all current broadcasts on a channel.
+            Get the index of the first active broadcast.
+
+            Start chat polling if there is am active broadcast
+        """
+        self.broadcast_active=False
+        broadcasts = [] # fill with API call
+        self.broadcasts=[]
+        self.broadcast_index=0
+        for index, b in broadcasts:
+            # Data structure: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#resource-representation
+
+            # Get index of first live active stream
+            if b_active(b["status"]['lifeCycleStatus']) and not self.broadcast_active:
+                    self.broadcast_index=index
+                    self.broadcast_active=True
+
+            self.broadcasts.append(
+                    {
+                    "id":b.['id'],
+                    "status":b["status"]['lifeCycleStatus']
+                    }
+                )
+
+        if self.broadcast_active:
+            # Start checking for chat
+            self.delay_callback("chat_polling", 100, self.chat_update)
+        else:
+            self.chat_token=None
+
+        # Continue checking for broadcast
+        self.delay_callback("get_broadcasts", 10000, self.get_broadcasts)
+
+
+    def set_broadcast_pos(self,num):
+        """ Override selected broadcast based on index
+        """
+        self.broadcast_index=num
+
+
+
+    async def chat_update(self):
+        """ Get chat messages based on page token
+            Reruns after polling delay
+
+            If there are no new messages check if stream is still live
+        """
+
+        chat={} # fill with API call
+
+        self.chat_token = chat['nextPageToken']
+
+        # Check for chat messages
+        if len(chat['items']) > 0:
+
+            # Go through all messages
+            for c in chat['items']:
+                # Create random colors from names
+                color="#"
+                for c in list((c['authorDetails']['displayName']+"mmm").replace(" ","").lower()[:3].encode('ascii')):
+                    c=(c-80)
+                    c=c*6
+                    color+=str(hex(c))[2:]
+
+                message={
+                        "from": str(c['authorDetails']['displayName']),
+                        "color": color,
+                        "text": str(c['snippet']['displayMessage']),
+                        "donate": 0 # not currently used
+                    }
+                self.log("callback_chat",json.dumps(message))
+                self.emit_chat(message)
+
+            # Get next batch of messages
+            self.delay_callback("chat_polling", chat['pollingIntervalMillis']+100, self.chat_update)
+        else:
+            # Check if stream is live
+            self.delay_callback("get_broadcasts", chat['pollingIntervalMillis']*4, self.get_broadcasts)
+
         return
 
