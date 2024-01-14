@@ -4,7 +4,7 @@ from stream.api_base import APIbase
 from twitchAPI.twitch import Twitch
 from twitchAPI.pubsub import PubSub
 from twitchAPI.helper import first
-from twitchAPI.oauth import UserAuthenticator
+from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.type import AuthScope
 from twitchAPI.chat import Chat, ChatMessage, ChatEvent
 
@@ -12,6 +12,7 @@ from pprint import pprint
 import asyncio
 from uuid import UUID
 import json
+from pathlib import PurePath
 
 
 class APItwitch(APIbase):
@@ -20,10 +21,11 @@ class APItwitch(APIbase):
     Manages authentication and creating messages from API events to use elsewhere
     """
 
-    def __init__(self,key_path=None,log=False):
+    def __init__(self,key_path=None,log=False,auth_token=None):
         """Init with file path"""
         super().__init__(key_path)
         self.service_name = "Twitch"
+        self.auth_token = auth_token
 
 
     async def connect(self):
@@ -39,12 +41,13 @@ class APItwitch(APIbase):
             AuthScope.CHAT_READ,
             AuthScope.CHAT_EDIT
         ]
-        # Build user auth
-        auth = UserAuthenticator(self.api, target_scope, force_verify=False)
-        # this will open your default browser and prompt you with the twitch verification website
-        token, refresh_token = await auth.authenticate()
-        # add User authentication
-        await self.api.set_user_authentication(token, target_scope, refresh_token)
+
+        # Build user auth with local storage
+        helper = UserAuthenticationStorageHelper(self.api,
+                                              target_scope,
+                                              storage_path=PurePath(self.auth_token))
+        # Connect to API
+        await helper.bind()
 
         # Get user for channel to watch
         self.user = await first(self.api.get_users(logins=['TechTangents']))
@@ -112,7 +115,7 @@ class APItwitch(APIbase):
             color = chat.user.color
 
         message={
-                "from": chat.user.name,
+                "from": chat.user.display_name,
                 "color": color,
                 "text": chat.text,
                 "donate": chat.bits

@@ -53,7 +53,10 @@ def exit_handler(sig, frame):
 outtest = OUTDectalk()
 #outcall = OUTCall("192.168.1.219")
 http = APIhttp()
-twitch = APItwitch(str(Path.home())+"/.api/twitch.json")
+twitch = APItwitch(
+    key_path=str(Path.home())+"/.api/twitch.json",
+    auth_token=str(Path.home())+"/.api/twitch_auth.json"
+)
 youtube = APIyoutube(
     key_path=str(Path.home())+"/.api/youtube.json",
     auth_token=str(Path.home())+"/.api/youtube_auth.json"
