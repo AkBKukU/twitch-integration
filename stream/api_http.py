@@ -80,7 +80,7 @@ class APIhttp(APIbase):
         """Output message to CLI for chat"""
         self.chat.append(data)
 
-        if len(self.chat) > 100:
+        if len(self.chat) > 30:
             self.chat.pop(0)
 
         with open(self.json_data, 'w', encoding="utf-8") as output:

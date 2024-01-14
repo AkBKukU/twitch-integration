@@ -15,6 +15,7 @@ class APIbase(APIKey):
         """Init with file path"""
         super().__init__(key_path)
         self.service_name = "Base"
+        self.auth_token = None
         self.api = None
         self.callbacks_donate=[]
         self.callbacks_interact=[]

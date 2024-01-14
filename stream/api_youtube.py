@@ -1,12 +1,16 @@
 #!/usr/bin/python3
 from stream.api_base import APIbase
 
-import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 
+from oauth2client.client import OAuth2WebServerFlow
+from oauth2client.file import Storage
+from oauth2client.tools import argparser, run_flow
+
 from pprint import pprint
 import json
+import httplib2
 
 
 """ Youtube Live Chat API Logic
@@ -36,10 +40,11 @@ class APIyoutube(APIbase):
     Manages authentication and creating messages from API events to use elsewhere
     """
 
-    def __init__(self,key_path=None,log=False):
+    def __init__(self,key_path=None,log=False,auth_token=None):
         """Init with file path"""
         super().__init__(key_path)
         self.service_name = "Youtube"
+        self.auth_token = auth_token
 
         # Stream info
         self.broadcasts=[]
@@ -48,35 +53,42 @@ class APIyoutube(APIbase):
         self.chat_token=None
 
 
-    def connect(self):
+    async def connect(self):
         """Connect to Twith API"""
         print("Connect to youtube")
 
         api_service_name = "youtube"
         api_version = "v3"
-        client_secrets_file = "YOUR_CLIENT_SECRET_FILE.json"
 
         scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
 
         flow = OAuth2WebServerFlow(
             client_id=self.client_id,
             client_secret=self.client_secret,
-            scope=self.build_scope(),
+            scope=scopes,
             redirect_uri="http://localhost"
         )
 
         # TODO - Fix token location
-        storage = Storage(GoogleAPIBase.storage_file)
-        GoogleAPIBase.credentials = storage.get()
+        storage = Storage(self.auth_token)
+        credentials = storage.get()
 
-        self.api = await Twitch(self.client_id, self.client_secret)
+        if credentials is None or credentials.invalid:
+            flags = argparser.parse_args(args=[])
+            credentials = run_flow(flow, storage, flags)
+
+        self.api = googleapiclient.discovery.build(
+            api_service_name, api_version,
+            http=credentials.authorize( httplib2.Http() )
+        )
 
 
+        self.delay_callback("get_broadcasts", 100, self.get_broadcasts)
         return
 
 
     def disconnect(self):
-        """Gracefully disconnect from Twith API"""
+        """Google is read only, no need to disconnect"""
 
         return
 
@@ -104,38 +116,50 @@ class APIyoutube(APIbase):
         """
         self.broadcast_active=False
 
+        print("Broadcast Query")
         request = self.api.liveBroadcasts().list(
             part="snippet,contentDetails,status",
             broadcastType="all",
             mine=True
         )
 
-        broadcasts = request.execute() # fill with API call
+        broadcasts = request.execute()['items'] # fill with API call
         self.broadcasts=[]
         self.broadcast_index=0
-        for index, b in broadcasts:
-            # Data structure: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#resource-representation
+        print("Broadcast List:")
+        print(pprint(broadcasts))
+        i=0
+        if broadcasts:
+            for b in broadcasts:
+                #print(pprint(b))
+                # Data structure: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#resource-representation
 
-            # Get index of first live active stream
-            if b_active(b["status"]['lifeCycleStatus']) and not self.broadcast_active:
-                    self.broadcast_index=index
+                # Get index of first live active stream
+                if self.b_active(b["status"]['lifeCycleStatus']) and not self.broadcast_active:
+                    self.broadcast_index=i
                     self.broadcast_active=True
 
-            self.broadcasts.append(
+                self.broadcasts.append(
                     {
-                    "id":b.['id'],
+                    "id":b['id'],
+                    "chat":b["snippet"]['liveChatId'],
                     "status":b["status"]['lifeCycleStatus']
                     }
                 )
 
+                i+=1
+
+
         if self.broadcast_active:
             # Start checking for chat
+            print("Found Broadcast: "+self.broadcasts[self.broadcast_index]['id'])
             self.delay_callback("chat_polling", 100, self.chat_update)
         else:
             self.chat_token=None
 
-        # Continue checking for broadcast
-        self.delay_callback("get_broadcasts", 10000, self.get_broadcasts)
+            # Continue checking for broadcast
+            print("No active broadcasts found")
+            self.delay_callback("get_broadcasts", 10000, self.get_broadcasts)
 
 
     def set_broadcast_pos(self,num):
@@ -151,8 +175,10 @@ class APIyoutube(APIbase):
 
             If there are no new messages check if stream is still live
         """
+        print("chat update")
         request = self.api.liveChatMessages().list(
-            liveChatId="YOUR_CHAT_ID",
+            liveChatId=self.broadcasts[self.broadcast_index]['chat'],
+            pageToken="" if self.chat_token is None else self.chat_token,
             part="snippet,authorDetails"
         )
         chat = request.execute() # fill with API call
@@ -164,15 +190,20 @@ class APIyoutube(APIbase):
 
             # Go through all messages
             for c in chat['items']:
+
+                print("chat:")
+                #print(pprint(c))
                 # Create random colors from names
                 color="#"
-                for c in list((c['authorDetails']['displayName']+"mmm").replace(" ","").lower()[:3].encode('ascii')):
-                    c=(c-80)
-                    c=c*6
-                    color+=str(hex(c))[2:]
+                letters=str(c['authorDetails']['displayName']).lower()[:3]
+                print(letters)
+                for col in list(letters.encode('ascii')):
+                    col=(col-80)
+                    col=col*6
+                    color+=str(hex(col))[2:]
 
                 message={
-                        "from": str(c['authorDetails']['displayName']),
+                        "from": c['authorDetails']['displayName'],
                         "color": color,
                         "text": str(c['snippet']['displayMessage']),
                         "donate": 0 # not currently used
@@ -180,6 +211,7 @@ class APIyoutube(APIbase):
                 self.log("callback_chat",json.dumps(message))
                 self.emit_chat(message)
 
+            print("chat wait"+str(chat['pollingIntervalMillis']))
             # Get next batch of messages
             self.delay_callback("chat_polling", chat['pollingIntervalMillis']+100, self.chat_update)
         else:
