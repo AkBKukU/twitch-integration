@@ -74,6 +74,7 @@ asyncio.run(main())
 
 # Run after CTRL-C
 http.disconnect()
-#asyncio.run(twitch.disconnect())
+asyncio.run(twitch.disconnect())
+asyncio.run(youtube.connect())
 
 

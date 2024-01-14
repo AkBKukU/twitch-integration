@@ -82,6 +82,7 @@ class APItwitch(APIbase):
         # Close API
         await self.api.close()
 
+        await self.cancel_delays()
         return
 
     async def callback_points(self, uuid: UUID, data: dict):

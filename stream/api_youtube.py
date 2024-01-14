@@ -87,9 +87,10 @@ class APIyoutube(APIbase):
         return
 
 
-    def disconnect(self):
+    async def disconnect(self):
         """Google is read only, no need to disconnect"""
 
+        await self.cancel_delays()
         return
 
 
@@ -123,14 +124,16 @@ class APIyoutube(APIbase):
             mine=True
         )
 
-        broadcasts = request.execute()['items'] # fill with API call
+        broadcasts = request.execute() # fill with API call
+
+        self.log("broadcasts",json.dumps(broadcasts))
         self.broadcasts=[]
         self.broadcast_index=0
         print("Broadcast List:")
         print(pprint(broadcasts))
         i=0
-        if broadcasts:
-            for b in broadcasts:
+        if broadcasts['items']:
+            for b in broadcasts['items']:
                 #print(pprint(b))
                 # Data structure: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#resource-representation
 
@@ -182,6 +185,7 @@ class APIyoutube(APIbase):
             part="snippet,authorDetails"
         )
         chat = request.execute() # fill with API call
+        self.log("chat",json.dumps(chat))
 
         self.chat_token = chat['nextPageToken']
 
