@@ -51,6 +51,8 @@ class APIyoutube(APIbase):
         self.broadcast_index=0
         self.broadcast_active=False
         self.chat_token=None
+        self.chat_slow=1
+        self.chat_slow_refresh=20
 
 
     async def connect(self):
@@ -156,13 +158,13 @@ class APIyoutube(APIbase):
         if self.broadcast_active:
             # Start checking for chat
             print("Found Broadcast: "+self.broadcasts[self.broadcast_index]['id'])
-            self.delay_callback("chat_polling", 100, self.chat_update)
+            self.delay_callback("chat_polling", 1000, self.chat_update)
         else:
             self.chat_token=None
 
             # Continue checking for broadcast
             print("No active broadcasts found")
-            self.delay_callback("get_broadcasts", 10000, self.get_broadcasts)
+            self.delay_callback("get_broadcasts", 30000, self.get_broadcasts)
 
 
     def set_broadcast_pos(self,num):
@@ -192,6 +194,9 @@ class APIyoutube(APIbase):
         # Check for chat messages
         if len(chat['items']) > 0:
 
+            # Reset slow scaling
+            self.chat_slow = 1
+
             # Go through all messages
             for c in chat['items']:
 
@@ -219,8 +224,15 @@ class APIyoutube(APIbase):
             # Get next batch of messages
             self.delay_callback("chat_polling", chat['pollingIntervalMillis']+100, self.chat_update)
         else:
-            # Check if stream is live
-            self.delay_callback("get_broadcasts", chat['pollingIntervalMillis']*4, self.get_broadcasts)
+            self.chat_slow += 1
+
+            if self.chat_slow_refresh > self.chat_slow:
+                # Slow chat scaling, increase update delay length to save API quota
+                self.delay_callback("chat_polling", chat['pollingIntervalMillis']*self.chat_slow, self.chat_update)
+            else:
+                self.chat_slow = 1
+                # Check if stream is live
+                self.delay_callback("get_broadcasts", 30000, self.get_broadcasts)
 
         return
 
