@@ -1,21 +1,32 @@
-#body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
+body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
+
+.name {
+font-weight: bold;
+}
 
 #chat-container {
-  height: 730px;
-  width: 450px;
+font-family: sans-serif;
+text-shadow: 0px 0px 8px black;
+background-color: rgba(1, 0, 0, 0.85);
+border-radius: 60px;
+
+  height: 710px;
+  width: 470px;
   margin: 0px;
   display: flex;
-  overflow: hidden;
+ overflow: hidden;
+padding-right:1em;
 }
 
 #chat-list li{
   margin-left: -1em;
+padding-bottom: 0.5em
 }
 #chat-list{
+padding-bottom: 1em;
   margin: 0px;
-  list-style-type: none;
-  overflow: hidden;
+list-style-type: none;
+ overflow: hidden;
   color: white;
   font-size: 1.7em;
   align-self: flex-end;
-}
