@@ -10,6 +10,7 @@ from flask import make_response
 from multiprocessing import Process
 
 import os
+import bleach
 import json
 
 class APIhttp(APIbase):
@@ -78,6 +79,7 @@ class APIhttp(APIbase):
 
     def receive_chat(self,data):
         """Output message to CLI for chat"""
+        data["text"] = bleach.clean(data["text"])
         self.chat.append(data)
 
         if len(self.chat) > 30:
