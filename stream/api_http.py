@@ -79,7 +79,7 @@ class APIhttp(APIbase):
 
     def receive_chat(self,data):
         """Output message to CLI for chat"""
-        data["text"] = bleach.clean(data["text"])
+        data["text"] = bleach.clean(data["text"],tags={})
         self.chat.append(data)
 
         if len(self.chat) > 30:
