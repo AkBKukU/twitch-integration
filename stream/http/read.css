@@ -1,0 +1,23 @@
+body {
+    background-color:#111;
+    color: #ddd;
+}
+
+li {
+    list-style-type: none;
+}
+
+li:nth-child(even) {
+  background-color:#252525;
+}body {
+    background-color:#111;
+    color: #ddd;
+}
+
+li {
+    list-style-type: none;
+}
+
+li:nth-child(even) {
+  background-color:#252525;
+}
