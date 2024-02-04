@@ -4,7 +4,7 @@ body {
 }
 
 .name {font-weight: bold;}
-#chat-list li {list-style-type: none;}
+#chat-list li {list-style-type: none;padding-bottom: 0.5em;}
 #chat-list li:nth-child(even) {background-color:#252525;}
 
 
@@ -12,14 +12,13 @@ body {
 {
   padding-left: 0px;
   padding-bottom: 1em;
-  margin-right: -20em;
   font-family: sans-serif;
   overflow: hidden;
   color: white;
   list-style-type: none;
 
   height: calc(100vh + 1000px);
-  margin-top: -1000px;
+  margin-top: calc(-1000px - 3em);
   width: calc(100vw - 1em);
 
   display: flex;
