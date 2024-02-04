@@ -3,21 +3,32 @@ body {
     color: #ddd;
 }
 
-li {
-    list-style-type: none;
+.name {font-weight: bold;}
+#chat-list li {list-style-type: none;}
+#chat-list li:nth-child(even) {background-color:#252525;}
+
+
+#chat-list
+{
+  padding-left: 0px;
+  padding-bottom: 1em;
+  margin-right: -20em;
+  font-family: sans-serif;
+  overflow: hidden;
+  color: white;
+  list-style-type: none;
+
+  height: calc(100vh + 1000px);
+  margin-top: -1000px;
+  width: calc(100vw - 1em);
+
+  display: flex;
+  flex-direction: column;
+  justify-content:flex-start;
 }
 
-li:nth-child(even) {
-  background-color:#252525;
-}body {
-    background-color:#111;
-    color: #ddd;
+ul > :first-child
+{
+  margin-top: auto;
 }
 
-li {
-    list-style-type: none;
-}
-
-li:nth-child(even) {
-  background-color:#252525;
-}

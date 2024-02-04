@@ -28,6 +28,9 @@ class APIhttp(APIbase):
         # Define routes in class to use with flask
         self.app.add_url_rule('/','home', self.index)
         self.app.add_url_rule('/chat/','chat', self.chat)
+        self.app.add_url_rule('/read/','read', self.read)
+        self.app.add_url_rule('/read/read.css','read-css', self.readcss)
+        self.app.add_url_rule('/read/data.json','read-data', self.readdata)
         self.app.add_url_rule('/chat/data.json','data', self.data)
 
         # Set headers for server
@@ -64,11 +67,24 @@ class APIhttp(APIbase):
         """ Simple class function to send HTML to browser """
         return """
 <a href="/chat/"><h2>Chat</h2></a>
+<a href="/read/"><h2>Read</h2></a>
         """
+
+    def read(self):
+        """ Simple class function to send HTML to browser """
+        return send_file("stream/http/chat-read.html")
+
+    def readcss(self):
+        """ Simple class function to send HTML to browser """
+        return send_file("stream/http/read.css")
 
     def chat(self):
         """ Simple class function to send HTML to browser """
         return send_file("stream/http/chat-view.html")
+
+    def readdata(self):
+        """ Simple class function to send JSON to browser """
+        return send_file(self.json_data)
 
     def data(self):
         """ Simple class function to send JSON to browser """

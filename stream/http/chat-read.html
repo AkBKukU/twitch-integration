@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<head>
+    <title>Live Chat View</title>
+    <link rel="stylesheet" type="text/css" href="read.css">
+    <script>
+
+
+function json_read(chat_data)
+{
+    if(chat_data.length ==0)
+    {
+      return
+    }
+
+    chat_list = document.getElementById("chat-list");
+    chat_list.textContent = '';
+
+    chat_data.forEach((c) => {
+        li = document.createElement("li");
+
+        var name = document.createElement("span");
+        name.innerHTML = c['from'];
+        name.style.color = c['color'];
+        name.classList.add("name");
+        li.appendChild(name)
+
+        var text = document.createElement("span");
+        text.innerHTML = ": " + c['text'];
+        text.classList.add("text");
+        li.appendChild(text)
+
+        chat_list.appendChild(li)
+    });
+
+}
+
+function data_fetch()
+{
+  fetch('data.json')
+    .then((response) => response.json())
+    .then((data) => json_read(data));
+
+  setTimeout(data_fetch,1000)
+}
+setTimeout(data_fetch,1000)
+
+    </script>
+</head>
+<body>
+    <div id="chat-container">
+        <ul id="chat-list">
+        </ul>
+    </div>
+</body>
