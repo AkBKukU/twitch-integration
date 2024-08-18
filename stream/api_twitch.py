@@ -93,7 +93,10 @@ class APItwitch(APIbase):
         self.log("callback_points",json.dumps(data))
 
         # Validate user provided text
-        text=str(""+str(data['data']['redemption']['user_input']))
+        if 'user_input' in data['data']['redemption']:
+            text=str(""+str(data['data']['redemption']['user_input']))
+        else:
+            text=""
 
         # Send data to receivers
         self.emit_interact(data['data']['redemption']['user']['display_name'],
