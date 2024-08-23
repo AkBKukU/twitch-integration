@@ -44,6 +44,9 @@ class APIhttp(APIbase):
 
         self.chat = []
         self.subs = []
+        self.poll = {}
+        self.poll_valid = []
+        self.poll_threshold = 10
         self.json_chat= '/tmp/stream_http_chat.json'
         self.json_subs= '/tmp/stream_http_subs.json'
         self.host = "0.0.0.0"
@@ -61,12 +64,69 @@ class APIhttp(APIbase):
         r.headers['Cache-Control'] = 'public, max-age=0'
         return r
 
+    def poll_check(self):
+        # If there are 10 identical messages in self.poll start poll and add message to valid
+        # after, if there are 10 other identical messages add new valid option and display
+        # if voter messages after voting ignore, unless valid vote number
+        poll_count={}
+        for k, v in self.poll.items():
+            if v not in poll_count:
+                poll_count[v] = 1
+            else:
+                poll_count[v] += 1
 
+        for poll_option in poll_count:
+            if poll_option > self.poll_threshold:
+                self.poll_valid.append(poll_option)
+
+        if self.poll_valid:
+            # Valid poll started, display with html
+            return
+
+        return
+
+    def poll_vote(self, from_name, text):
+        return_state = "show"
+
+        # Haven't chated since last poll
+        if from_name not in self.poll:
+            # record anything
+            self.poll[from_name] = text
+            return return_state
+
+        ## Change Vote
+        # Set vote if matches valid
+        if text in self.poll_valid:
+            self.poll[from_name] = text
+            return return_state
+
+        ## Change Vote
+        # Set vote if matches valid index
+        try:
+            if int(text) < len(self.valid)+1 and int(text) > 0:
+                self.poll[from_name] = self.valid[int(text)]
+                return return_state
+        except ValueError:
+            pass
+
+        # Update vote if not valid
+        if self.poll[from_name] not in self.poll_valid:
+            self.poll[from_name] = text
+            return return_state
+
+        # No valid votes yet, update vote
+        if not self.poll_valid:
+            self.poll[from_name] = text
+            return return_state
+
+        self.poll_check()
+        return "show"
 
     def connect(self):
         """ Run Flask in a process thread that is non-blocking """
         self.web_thread = Process(target=self.app.run, kwargs={"host":self.host,"port":5001})
         self.web_thread.start()
+
 
     def disconnect(self):
         """ Send SIGKILL and join thread to end Flask server """
@@ -148,6 +208,8 @@ class APIhttp(APIbase):
         """Output message to CLI for chat"""
         data["text"] = bleach.clean(data["text"],tags={})
         self.chat.append(data)
+        if self.poll_vote(data["from"], data["text"].lower().strip()) == "hide":
+            return
 
         if len(self.chat) > 30:
             self.chat.pop(0)
