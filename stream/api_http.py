@@ -46,6 +46,10 @@ class APIhttp(APIbase):
         self.subs = []
         self.json_chat= '/tmp/stream_http_chat.json'
         self.json_subs= '/tmp/stream_http_subs.json'
+        self.host = "0.0.0.0"
+
+    def set_host(self,host_ip):
+        self.host = host_ip
 
     def add_header(self,r):
         """
@@ -61,7 +65,7 @@ class APIhttp(APIbase):
 
     def connect(self):
         """ Run Flask in a process thread that is non-blocking """
-        self.web_thread = Process(target=self.app.run, kwargs={"host":"0.0.0.0","port":5001})
+        self.web_thread = Process(target=self.app.run, kwargs={"host":self.host,"port":5001})
         self.web_thread.start()
 
     def disconnect(self):
