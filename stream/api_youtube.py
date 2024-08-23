@@ -85,7 +85,7 @@ class APIyoutube(APIbase):
         )
 
 
-        self.delay_callback("get_broadcasts", 100, self.get_broadcasts)
+        self.delay_callback("get_broadcasts", 60000, self.get_broadcasts)
         return
 
 
