@@ -175,6 +175,7 @@ class APItwitch(APIbase):
             line += " subbed as "+sub_type+" "+sub_len+" and says "+str(data['sub_message']['message'])
 
         # Send data to receivers
+        print("emitting sub")
         self.emit_donate(data['user_name'],
                             str(data['sub_plan'])+"s",
                             line

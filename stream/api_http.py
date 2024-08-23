@@ -12,6 +12,7 @@ from multiprocessing import Process
 import os
 import bleach
 import json
+from datetime import datetime
 
 class APIhttp(APIbase):
     """Twitch API with signal emitters for bits, subs, and point redeems
@@ -28,16 +29,23 @@ class APIhttp(APIbase):
         # Define routes in class to use with flask
         self.app.add_url_rule('/','home', self.index)
         self.app.add_url_rule('/chat/','chat', self.chat)
+        self.app.add_url_rule('/chat/chat.json','data', self.chatJsonChat)
         self.app.add_url_rule('/read/','read', self.read)
-        self.app.add_url_rule('/read/read.css','read-css', self.readcss)
-        self.app.add_url_rule('/read/data.json','read-data', self.readdata)
-        self.app.add_url_rule('/chat/data.json','data', self.data)
+        self.app.add_url_rule('/read/read.css','read-css', self.readCss)
+        self.app.add_url_rule('/read/chat.json','read-data', self.readJsonChat)
+        self.app.add_url_rule('/window/','window', self.window)
+        self.app.add_url_rule('/window/window.css','window-css', self.windowCss)
+        self.app.add_url_rule('/window/window.js','window-js', self.windowJs)
+        self.app.add_url_rule('/window/chat.json','window-chat', self.windowJsonChat)
+        self.app.add_url_rule('/window/subs.json','window-subs', self.windowJsonSubs)
 
         # Set headers for server
         self.app.after_request(self.add_header)
 
         self.chat = []
-        self.json_data= '/tmp/stream_http_data.json'
+        self.subs = []
+        self.json_chat= '/tmp/stream_http_chat.json'
+        self.json_subs= '/tmp/stream_http_subs.json'
 
     def add_header(self,r):
         """
@@ -68,13 +76,14 @@ class APIhttp(APIbase):
         return """
 <a href="/chat/"><h2>Chat</h2></a>
 <a href="/read/"><h2>Read</h2></a>
+<a href="/window/"><h2>Window</h2></a>
         """
 
     def read(self):
         """ Simple class function to send HTML to browser """
         return send_file("stream/http/chat-read.html")
 
-    def readcss(self):
+    def readCss(self):
         """ Simple class function to send HTML to browser """
         return send_file("stream/http/read.css")
 
@@ -82,16 +91,54 @@ class APIhttp(APIbase):
         """ Simple class function to send HTML to browser """
         return send_file("stream/http/chat-view.html")
 
-    def readdata(self):
+    def readJsonChat(self):
         """ Simple class function to send JSON to browser """
-        return send_file(self.json_data)
+        return send_file(self.json_chat)
 
-    def data(self):
+    def chatJsonChat(self):
         """ Simple class function to send JSON to browser """
-        return send_file(self.json_data)
+        return send_file(self.json_chat)
 
+    def window(self):
+        """ Simple class function to send HTML to browser """
+        return send_file("stream/http/window.html")
 
+    def windowCss(self):
+        """ Simple class function to send HTML to browser """
+        return send_file("stream/http/window.css")
 
+    def windowJs(self):
+        """ Simple class function to send HTML to browser """
+        return send_file("stream/http/window.js")
+
+    def windowJsonChat(self):
+        """ Simple class function to send JSON to browser """
+        return send_file(self.json_chat)
+
+    def windowJsonSubs(self):
+        """ Simple class function to send JSON to browser """
+        return send_file(self.json_subs)
+
+    def receive_donate(self,from_name,amount,message,benefits=None):
+        """Output message to CLI for chat"""
+        message = bleach.clean(message,tags={})
+
+        print ("something Recieved: "+amount)
+        # Subs
+        if amount.endswith("b"):
+            # No action on bits
+            return
+
+        print ("HTTP Sub Recieved")
+
+        self.subs.append({"timestamp":str(datetime.now().isoformat()).replace(":","-"),"from":from_name, "text":message})
+
+        if len(self.subs) > 30:
+            self.chat.pop(0)
+
+        with open(self.json_subs, 'w', encoding="utf-8") as output:
+            output.write(json.dumps(self.subs))
+        return
 
     def receive_chat(self,data):
         """Output message to CLI for chat"""
@@ -101,6 +148,6 @@ class APIhttp(APIbase):
         if len(self.chat) > 30:
             self.chat.pop(0)
 
-        with open(self.json_data, 'w', encoding="utf-8") as output:
+        with open(self.json_chat, 'w', encoding="utf-8") as output:
             output.write(json.dumps(self.chat))
         return

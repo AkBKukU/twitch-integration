@@ -35,7 +35,7 @@ function json_read(chat_data)
 
 function data_fetch()
 {
-  fetch('data.json')
+  fetch('chat.json')
     .then((response) => response.json())
     .then((data) => json_read(data));
 
