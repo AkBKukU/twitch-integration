@@ -83,3 +83,4 @@ function subs_fetch()
 // Final Init
 setTimeout(chat_fetch,1000)
 setTimeout(subs_fetch,1000)
+message_box.classList.add('fade-out');
