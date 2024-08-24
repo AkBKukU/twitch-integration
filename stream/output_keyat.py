@@ -2,6 +2,7 @@
 from stream.api_base import APIbase
 from stream.keyat.interface import Interface as KAT
 import re
+import time
 
 
 class OUTKAT(APIbase):
@@ -60,6 +61,14 @@ class OUTKAT(APIbase):
                     return
             keyat.send(message[:32]+"\n")
             print("Command (from [" +from_name+ "]): " + message[:32])
+        if kind == "Status Command":
+            keyat.send("i"+"\n")
+            time.sleep(3)
+            keyat.send("diagnose"+"\n")
+            time.sleep(3)
+            keyat.send("look"+"\n")
+            time.sleep(3)
+
         return
 
 
