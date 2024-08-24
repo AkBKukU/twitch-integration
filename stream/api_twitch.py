@@ -174,6 +174,8 @@ class APItwitch(APIbase):
         else:
             line=str(data['display_name'])
             line += " subbed as "+sub_type+" "+sub_len+" and says "+str(data['sub_message']['message'])
+            if data['display_name'] == "baljemmett":
+                line.replace("sub","subb")
 
         # Send data to receivers
         print("emitting sub")

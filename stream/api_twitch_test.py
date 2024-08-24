@@ -24,6 +24,31 @@ class APItwitchTest(APItwitch):
         super().__init__(key_path)
         self.service_name = "TwitchTest"
         self.procs = []
+        self.fake_votes=[
+                "1",
+                "1",
+                "1",
+                "1",
+                "1",
+                "1",
+                "1",
+                "1",
+                "2",
+                "2",
+                "2",
+                "2",
+                "2",
+                "2",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "0"
+                ]
         self.fake_names=[
             {"from":"Fred","color":""},
             {"from":"Felicia","color":""},
@@ -31,6 +56,17 @@ class APItwitchTest(APItwitch):
             {"from":"Betty","color":""},
             {"from":"James","color":""},
             {"from":"Jane","color":""},
+            {"from":"Lorem","color":""},
+            {"from":"ipsum","color":""},
+            {"from":"dolor","color":""},
+            {"from":"sit","color":""},
+            {"from":"amet","color":""},
+            {"from":"more","color":""},
+            {"from":"less","color":""},
+            {"from":"vim","color":""},
+            {"from":"fstab","color":""},
+            {"from":"dir","color":""},
+            {"from":"type","color":""},
             {"from":"Z AA","color":""},
             {"from":"A ZA","color":""},
             {"from":"A AZ","color":""},
@@ -66,6 +102,7 @@ class APItwitchTest(APItwitch):
 
         # Create random colors from names
         random.shuffle(self.fake_names)
+        random.shuffle(self.fake_votes)
         color="#"
         for c in list((self.fake_names[0]["from"]+"mmm").replace(" ","").lower()[:3].encode('ascii')):
             c=(c-80)
@@ -76,7 +113,7 @@ class APItwitchTest(APItwitch):
         message={
                 "from": self.fake_names[0]["from"],
                 "color": color,
-                "text": "Right "+str(datetime.now().isoformat()).replace(":","-"),
+                "text": self.fake_votes[0]+" vote",
                 "time": str(datetime.now().isoformat()).replace(":","-"),
                 "donate": 0
             }

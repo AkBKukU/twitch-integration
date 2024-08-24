@@ -21,6 +21,7 @@ class APIhttp(APIbase):
     """
 
     def __init__(self,key_path=None,log=False):
+        super().__init__(key_path)
         """Init with file path"""
         self.service_name = "HTTP"
 
@@ -38,6 +39,7 @@ class APIhttp(APIbase):
         self.app.add_url_rule('/window/window.js','window-js', self.windowJs)
         self.app.add_url_rule('/window/chat.json','window-chat', self.windowJsonChat)
         self.app.add_url_rule('/window/subs.json','window-subs', self.windowJsonSubs)
+        self.app.add_url_rule('/window/poll.json','window-poll', self.windowJsonPoll)
 
         # Set headers for server
         self.app.after_request(self.add_header)
@@ -46,10 +48,13 @@ class APIhttp(APIbase):
         self.subs = []
         self.poll = {}
         self.poll_valid = []
-        self.poll_threshold = 10
+        self.poll_threshold = 3
         self.json_chat= '/tmp/stream_http_chat.json'
         self.json_subs= '/tmp/stream_http_subs.json'
+        self.json_poll= '/tmp/stream_http_poll.json'
         self.host = "0.0.0.0"
+
+        
 
     def set_host(self,host_ip):
         self.host = host_ip
@@ -64,10 +69,12 @@ class APIhttp(APIbase):
         r.headers['Cache-Control'] = 'public, max-age=0'
         return r
 
-    def poll_check(self):
+    async def poll_check(self):
         # If there are 10 identical messages in self.poll start poll and add message to valid
         # after, if there are 10 other identical messages add new valid option and display
         # if voter messages after voting ignore, unless valid vote number
+        print("####### Poll Check")
+        self.delay_callback("poll_check", 1000, self.poll_check)
         poll_count={}
         for k, v in self.poll.items():
             if v not in poll_count:
@@ -76,12 +83,22 @@ class APIhttp(APIbase):
                 poll_count[v] += 1
 
         for poll_option in poll_count:
-            if poll_option > self.poll_threshold:
-                self.poll_valid.append(poll_option)
+            if poll_count[poll_option] > self.poll_threshold:
+                if poll_option not in self.poll_valid:
+                    self.poll_valid.append(poll_option)
 
         if self.poll_valid:
+            print("####### Poll started with valid options:")
+            poll_data = {}
+            for opt in self.poll_valid:
+                if opt not in poll_count:
+                    poll_count[opt] = 0
+                print(opt+": "+str(poll_count[opt]))
+                poll_data[opt] = poll_count[opt]
+            
+            with open(self.json_poll, 'w', encoding="utf-8") as output:
+                output.write(json.dumps(poll_data))
             # Valid poll started, display with html
-            return
 
         return
 
@@ -119,13 +136,14 @@ class APIhttp(APIbase):
             self.poll[from_name] = text
             return return_state
 
-        self.poll_check()
         return "show"
 
-    def connect(self):
+    async def connect(self):
         """ Run Flask in a process thread that is non-blocking """
+        print("Starting Flask")
         self.web_thread = Process(target=self.app.run, kwargs={"host":self.host,"port":5001})
         self.web_thread.start()
+        self.delay_callback("poll_check", 1000, self.poll_check)
 
 
     def disconnect(self):
@@ -182,6 +200,10 @@ class APIhttp(APIbase):
     def windowJsonSubs(self):
         """ Simple class function to send JSON to browser """
         return send_file(self.json_subs)
+
+    def windowJsonPoll(self):
+        """ Simple class function to send JSON to browser """
+        return send_file(self.json_poll)
 
     def receive_donate(self,from_name,amount,message,benefits=None):
         """Output message to CLI for chat"""
