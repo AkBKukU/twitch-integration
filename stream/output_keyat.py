@@ -8,7 +8,7 @@ class OUTKAT(APIbase):
     """Simple CLI output receiver
     """
 
-    def __init__(self):
+    def __init__(self,serial_port='/dev/ttyUSB0'):
         super().__init__(None)
         self.service_name = "KeyAT"
         self.banned = [
@@ -28,10 +28,11 @@ class OUTKAT(APIbase):
             ".q",
             ".",
             ]
+        self.serial_port = serial_port
 
     def receive_chat(self,data):
         """Output message to CLI for donate"""
-        keyat = KAT("/dev/ttyUSB0")
+        keyat = KAT(self.serial_port)
         keyat.send(data["from"]+": "+data["text"]+"\n")
         return
 
@@ -42,7 +43,7 @@ class OUTKAT(APIbase):
 
     def receive_interact(self,from_name,kind,message):
         """Output message to CLI for interaction"""
-        keyat = KAT("/dev/ttyUSB0")
+        keyat = KAT(self.serial_port)
         if kind == "Send Command":
 
             message = message.encode("ascii",errors="ignore").decode()
@@ -76,7 +77,7 @@ class OUTKAT(APIbase):
             if int(amount) == 25:
                 print("Maybe Restart: " + message)
                 if "restart" in message:
-                    keyat = KAT("/dev/ttyUSB0")
+                    keyat = KAT(self.serial_port)
                     keyat.send("restart\nY\n")
                     return
         return

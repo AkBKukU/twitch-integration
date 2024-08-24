@@ -10,9 +10,10 @@ class OUTDectalk(OUTBase):
     Sends messages over serial to a DECTalk with some bootstrapping to make it work better
     """
 
-    def __init__(self):
+    def __init__(self,serial_port='/dev/ttyUSB0'):
         super().__init__()
         self.service_name = "DECTalk"
+        self.serial_port = serial_port
 
     def write(self,text):
         """Write data to serial port to DECTalk"""
@@ -25,7 +26,7 @@ class OUTDectalk(OUTBase):
         postfix=str('[:nh][:dv ap 90 pr 0].[:rate 140]END OF LINE.[:np][:pp 0 :cp 0][:rate 200][:say line][:punct none][:pitch 35][:phoneme off][:volume set 33]\r\n')
 
         # Send data to DECTalk
-        with serial.Serial('/dev/ttyUSB0',9600,timeout=1) as ser:
+        with serial.Serial(self.serial_port,9600,timeout=1) as ser:
             ser.write( bytes(prefix+str(text)+postfix,'ascii',errors='ignore') )
         return
 
