@@ -151,9 +151,10 @@ class APIhttp(APIbase):
             # record anything
             self.poll[from_name] = text
 
-            win = max(poll_count, key=poll_output["data"].get)
-            if win == text:
-                self.poll_output["remaining"] -= 2
+            if self.poll_valid:
+                win = max(self.poll_output["data"], key=self.poll_output["data"].get)
+                if win == text:
+                    self.poll_output["remaining"] -= 2
             return return_state
 
         ## Change Vote
