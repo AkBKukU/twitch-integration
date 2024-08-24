@@ -14,6 +14,7 @@ class OUTDectalk(OUTBase):
         super().__init__()
         self.service_name = "DECTalk"
         self.serial_port = serial_port
+        self.write("DECTalk is now on line")
 
     def write(self,text):
         """Write data to serial port to DECTalk"""
