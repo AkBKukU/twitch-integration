@@ -125,7 +125,6 @@ class APItwitch(APIbase):
             }
 
         self.log("callback_chat",json.dumps(message))
-        self.log("api_chat",json.dumps(chat))
         self.emit_chat(message)
         return
 
