@@ -129,8 +129,8 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
 {
     /*Sub Window Postioning*/
     position: absolute;
-    top:      10px;
-    right:    10px;
+    top:      20px;
+    right:    20px;
     max-width:800px;
     margin:   0px;
     padding:  20px;
@@ -146,6 +146,7 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
     font-size: 1.7em;
 
     /*Text Cosmetic*/
+    color: white;
     font-family: sans-serif;
     font-weight: bold;
     text-shadow: 0px 0px 8px black;
