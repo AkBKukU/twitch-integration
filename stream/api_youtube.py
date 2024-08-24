@@ -52,6 +52,7 @@ class APIyoutube(APIbase):
         self.broadcast_active=False
         self.chat_token=None
         self.chat_slow=1
+        self.chat_slow_add=0
         self.chat_slow_refresh=20
 
 
@@ -164,7 +165,7 @@ class APIyoutube(APIbase):
 
             # Continue checking for broadcast
             print("No active broadcasts found")
-            self.delay_callback("get_broadcasts", 30000, self.get_broadcasts)
+            self.delay_callback("get_broadcasts", 60000, self.get_broadcasts)
 
 
     def set_broadcast_pos(self,num):
@@ -172,7 +173,10 @@ class APIyoutube(APIbase):
         """
         self.broadcast_index=num
 
-
+    def set_chat_refresh_delay(self, delay):
+        """ Option to slow down chat even more because the quota is limited
+        """
+        self.chat_slow_add = delay
 
     async def chat_update(self):
         """ Get chat messages based on page token
@@ -222,13 +226,13 @@ class APIyoutube(APIbase):
 
             print("chat wait"+str(chat['pollingIntervalMillis']))
             # Get next batch of messages
-            self.delay_callback("chat_polling", chat['pollingIntervalMillis']+100, self.chat_update)
+            self.delay_callback("chat_polling", chat['pollingIntervalMillis']+100+self.chat_slow_add, self.chat_update)
         else:
             self.chat_slow += 1
 
             if self.chat_slow_refresh > self.chat_slow:
                 # Slow chat scaling, increase update delay length to save API quota
-                self.delay_callback("chat_polling", chat['pollingIntervalMillis']*self.chat_slow, self.chat_update)
+                self.delay_callback("chat_polling", chat['pollingIntervalMillis']*self.chat_slow+self.chat_slow_add, self.chat_update)
             else:
                 self.chat_slow = 1
                 # Check if stream is live
