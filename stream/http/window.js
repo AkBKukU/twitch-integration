@@ -64,6 +64,9 @@ function poll_read(poll_data)
 
     if (!poll_data.valid)
     {
+            poll_box = document.getElementById("poll-box");
+            poll_box.classList.add('fade-out');
+            poll_box.classList.remove('fade-in');
 	    return
     }
 
@@ -71,7 +74,12 @@ function poll_read(poll_data)
     poll_list.textContent = '';
 
     poll_title = document.getElementById("poll-title");
-    poll_title.textContent = poll_data.title;
+    if (poll_data.remaining > 1)
+    {
+       poll_title.textContent = poll_data.remaining-1 +"s: "+ poll_data.title;
+    }else{
+       poll_title.textContent = "Done: "+ poll_data.title;
+    }
 
     for (const [key, value] of Object.entries(poll_data.data)) {
 

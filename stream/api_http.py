@@ -17,7 +17,7 @@ from datetime import datetime
 class APIhttp(APIbase):
     """Twitch API with signal emitters for bits, subs, and point redeems
 
-    Manages authentication and creating messages from API events to use elsewhere
+    Manages authentication and creating messages from API events to     use elsewhere
     """
 
     def __init__(self,key_path=None,log=False):
@@ -47,6 +47,7 @@ class APIhttp(APIbase):
         self.chat = []
         self.subs = []
         self.poll = {}
+        self.poll_output = {}
         self.poll_valid = []
         self.poll_threshold = 3
         self.json_chat= '/tmp/stream_http_chat.json'
@@ -74,7 +75,6 @@ class APIhttp(APIbase):
         # after, if there are 10 other identical messages add new valid option and display
         # if voter messages after voting ignore, unless valid vote number
         print("####### Poll Check")
-        self.delay_callback("poll_check", 1000, self.poll_check)
         poll_count={}
         for k, v in self.poll.items():
             if v not in poll_count:
@@ -87,24 +87,51 @@ class APIhttp(APIbase):
                 if poll_option not in self.poll_valid:
                     self.poll_valid.append(poll_option)
 
-        if self.poll_valid:
+        if self.poll_valid and self.poll_output["valid"] == False:
             print("####### Poll started with valid options:")
+            self.poll_output["valid"] = True
+            self.poll_output["title"] = "Dynamic Poll"
+            self.poll_output["remaining"] = 30
+        if self.poll_valid:
             poll_data = {}
             for opt in self.poll_valid:
                 if opt not in poll_count:
                     poll_count[opt] = 0
                 print(opt+": "+str(poll_count[opt]))
                 poll_data[opt] = poll_count[opt]
-            poll_output = {}
-            poll_output["valid"] = True
-            poll_output["title"] = "Dynamic Poll"
-            poll_output["remaining"] = 30
-            poll_output["data"] = poll_data
+            self.poll_output["data"] = poll_data
 
             with open(self.json_poll, 'w', encoding="utf-8") as output:
-                output.write(json.dumps(poll_output))
+                output.write(json.dumps(self.poll_output))
+
+            self.poll_output["remaining"] -= 1
+            if (self.poll_output["remaining"] == 0):
+                # Poll over
+                self.delay_callback("poll_clear", 10000, self.poll_clear)
+
+                win = max(poll_count, key=poll_count.get)
+                # Send data to receivers
+                self.emit_interact("api",
+                    "Poll Results",
+                    win
+                    )
+
+                self.receive_donate("api","1s","Poll Over ["+win+"] Wins")
+                return
+
             # Valid poll started, display with html
 
+        self.delay_callback("poll_check", 1000, self.poll_check)
+        return
+
+    async def poll_clear(self):
+        self.poll = {}
+        self.poll_valid = []
+        self.poll_output = {}
+        self.poll_output["valid"] = False
+        with open(self.json_poll, 'w', encoding="utf-8") as output:
+            output.write(json.dumps(self.poll_output))
+        self.delay_callback("poll_check", 1000, self.poll_check)
         return
 
     def poll_vote(self, from_name, text):
@@ -148,12 +175,7 @@ class APIhttp(APIbase):
         print("Starting Flask")
         self.web_thread = Process(target=self.app.run, kwargs={"host":self.host,"port":5001})
         self.web_thread.start()
-        poll_output = {}
-        poll_output["valid"] = False
-        with open(self.json_poll, 'w', encoding="utf-8") as output:
-            output.write(json.dumps(poll_output))
-        self.delay_callback("poll_check", 1000, self.poll_check)
-
+        self.delay_callback("poll_clear", 100, self.poll_clear)
 
     def disconnect(self):
         """ Send SIGKILL and join thread to end Flask server """
@@ -229,7 +251,7 @@ class APIhttp(APIbase):
         self.subs.append({"timestamp":str(datetime.now().isoformat()).replace(":","-"),"from":from_name, "text":message})
 
         if len(self.subs) > 30:
-            self.chat.pop(0)
+            self.subs.pop(0)
 
         with open(self.json_subs, 'w', encoding="utf-8") as output:
             output.write(json.dumps(self.subs))
