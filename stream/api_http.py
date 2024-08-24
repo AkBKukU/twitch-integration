@@ -137,10 +137,23 @@ class APIhttp(APIbase):
     def poll_vote(self, from_name, text):
         return_state = "show"
 
+        ## Change Vote
+        # Set vote if matches valid index
+        #try:
+        #    if int(text) < len(self.poll_valid)+1 and int(text) > 0:
+        #        self.poll[from_name] = self.poll_valid[int(text)]
+        #        return return_state
+        #except ValueError:
+        #    pass
+
         # Haven't chated since last poll
         if from_name not in self.poll:
             # record anything
             self.poll[from_name] = text
+
+            win = max(poll_count, key=poll_output["data"].get)
+            if win == text:
+                self.poll_output["remaining"] -= 2
             return return_state
 
         ## Change Vote
@@ -148,15 +161,6 @@ class APIhttp(APIbase):
         if text in self.poll_valid:
             self.poll[from_name] = text
             return return_state
-
-        ## Change Vote
-        # Set vote if matches valid index
-        try:
-            if int(text) < len(self.poll_valid)+1 and int(text) > 0:
-                self.poll[from_name] = self.poll_valid[int(text)]
-                return return_state
-        except ValueError:
-            pass
 
         # Update vote if not valid
         if self.poll[from_name] not in self.poll_valid:
