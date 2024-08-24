@@ -52,6 +52,44 @@ function subs_read(subs_data)
     setTimeout(subs_fade_out,10000)
 }
 
+
+
+// Poll Handling
+function poll_read(poll_data)
+{
+    if(poll_data.length ==0)
+    {
+      return
+    }
+
+    if (!poll_data.valid)
+    {
+	    return
+    }
+
+    poll_list = document.getElementById("poll-list");
+    poll_list.textContent = '';
+
+    poll_title = document.getElementById("poll-title");
+    poll_title.textContent = poll_data.title;
+
+    for (const [key, value] of Object.entries(poll_data.data)) {
+
+        li = document.createElement("li");
+
+        var text = document.createElement("span");
+        text.innerHTML = key+": " + value;
+        li.appendChild(text)
+
+        poll_list.appendChild(li)
+
+    };
+    poll_box = document.getElementById("poll-box");
+    poll_box.classList.add('fade-in');
+    poll_box.classList.remove('fade-out');
+}
+
+
 function subs_fade_out()
 {
     message_box = document.getElementById("message-box");
@@ -79,8 +117,21 @@ function subs_fetch()
   setTimeout(subs_fetch,1000)
 }
 
+// Poll Data Loop
+function poll_fetch()
+{
+  fetch('poll.json')
+    .then((response) => response.json())
+    .then((data) => poll_read(data));
+
+  setTimeout(poll_fetch,1000)
+}
+
+
 
 // Final Init
 setTimeout(chat_fetch,1000)
 setTimeout(subs_fetch,1000)
+setTimeout(poll_fetch,1000)
 document.getElementById("message-box").classList.add('fade-out');
+document.getElementById("poll-box").classList.add('fade-out');

@@ -95,9 +95,14 @@ class APIhttp(APIbase):
                     poll_count[opt] = 0
                 print(opt+": "+str(poll_count[opt]))
                 poll_data[opt] = poll_count[opt]
-            
+            poll_output = {}
+            poll_output["valid"] = True
+            poll_output["title"] = "Dynamic Poll"
+            poll_output["remaining"] = 30
+            poll_output["data"] = poll_data
+
             with open(self.json_poll, 'w', encoding="utf-8") as output:
-                output.write(json.dumps(poll_data))
+                output.write(json.dumps(poll_output))
             # Valid poll started, display with html
 
         return
@@ -143,6 +148,10 @@ class APIhttp(APIbase):
         print("Starting Flask")
         self.web_thread = Process(target=self.app.run, kwargs={"host":self.host,"port":5001})
         self.web_thread.start()
+        poll_output = {}
+        poll_output["valid"] = False
+        with open(self.json_poll, 'w', encoding="utf-8") as output:
+            output.write(json.dumps(poll_output))
         self.delay_callback("poll_check", 1000, self.poll_check)
 
 
