@@ -103,7 +103,7 @@ class APIhttp(APIbase):
                 output.write(json.dumps(self.poll_output))
 
             self.poll_output["remaining"] -= 1
-            if (self.poll_output["remaining"] == 0):
+            if (self.poll_output["remaining"] < 1):
                 # Poll over
                 self.delay_callback("poll_clear", 10000, self.poll_clear)
 
