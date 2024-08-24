@@ -83,7 +83,7 @@ class APIhttp(APIbase):
                 poll_count[v] += 1
 
         for poll_option in poll_count:
-            if poll_count[poll_option] > self.poll_threshold:
+            if poll_count[poll_option] >= self.poll_threshold:
                 if poll_option not in self.poll_valid:
                     self.poll_valid.append(poll_option)
 
@@ -152,8 +152,8 @@ class APIhttp(APIbase):
         ## Change Vote
         # Set vote if matches valid index
         try:
-            if int(text) < len(self.valid)+1 and int(text) > 0:
-                self.poll[from_name] = self.valid[int(text)]
+            if int(text) < len(self.poll_valid)+1 and int(text) > 0:
+                self.poll[from_name] = self.poll_valid[int(text)]
                 return return_state
         except ValueError:
             pass
