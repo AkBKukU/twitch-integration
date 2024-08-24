@@ -44,7 +44,7 @@ class OUTKAT(APIbase):
     def receive_interact(self,from_name,kind,message):
         """Output message to CLI for interaction"""
         keyat = KAT(self.serial_port)
-        if kind == "Send Command":
+        if kind == "Send Command" or kind == "Poll Results":
 
             message = message.encode("ascii",errors="ignore").decode()
             message = re.sub('\\bq\\b', '', message)
