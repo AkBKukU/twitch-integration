@@ -125,6 +125,13 @@ class APItwitch(APIbase):
             }
 
         self.log("callback_chat",json.dumps(message))
+        if chat.user.mod or chat.user.display_name == "TechTangents":
+            print("Mod chat: "+message["text"][0:1])
+            if message["text"][0:1] == "!":
+                self.emit_interact(chat.user.display_name,
+                                    "Mod Chat Command",
+                                    message["text"]
+                                    )
         self.emit_chat(message)
         return
 

@@ -90,8 +90,6 @@ class APIhttp(APIbase):
         if self.poll_valid and self.poll_output["valid"] == False:
             print("####### Poll started with valid options:")
             self.poll_output["valid"] = True
-            self.poll_output["title"] = "Dynamic Poll"
-            self.poll_output["remaining"] = 30
         if self.poll_valid:
             poll_data = {}
             for opt in self.poll_valid:
@@ -128,6 +126,8 @@ class APIhttp(APIbase):
         self.poll = {}
         self.poll_valid = []
         self.poll_output = {}
+        self.poll_output["title"] = "Dynamic Poll"
+        self.poll_output["remaining"] = 30
         self.poll_output["valid"] = False
         with open(self.json_poll, 'w', encoding="utf-8") as output:
             output.write(json.dumps(self.poll_output))
@@ -182,6 +182,9 @@ class APIhttp(APIbase):
         self.web_thread.terminate()
         self.web_thread.join()
 
+    def poll_config(self,title):
+        self.poll_output["title"] = title
+        self.poll_output["remaining"] += 60
 
 
     def index(self):
@@ -270,3 +273,8 @@ class APIhttp(APIbase):
         with open(self.json_chat, 'w', encoding="utf-8") as output:
             output.write(json.dumps(self.chat))
         return
+
+    def receive_interact(self,from_name,kind,message):
+        if kind == "Mod Chat Command":
+            self.poll_config(message.lower().replace("!poll","").strip())
+            print("Poll title change: "+message)
