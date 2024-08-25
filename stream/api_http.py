@@ -281,5 +281,6 @@ class APIhttp(APIbase):
 
     def receive_interact(self,from_name,kind,message):
         if kind == "Mod Chat Command":
-            self.poll_config(message.lower().replace("!poll","").strip())
-            print("Poll title change: "+message)
+            if message.find("!poll") == 0:
+                self.poll_config(message.lower().replace("!poll","").strip())
+                print("Poll title change: "+message)
