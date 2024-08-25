@@ -141,8 +141,11 @@ class APIhttp(APIbase):
     def poll_vote(self, from_name, text):
         return_state = "show"
 
-        for filter_text in self.poll_filter["filter"]:
-            text.replace(filter_text,"")
+        if text in self.poll_filter["whole"]:
+            text = self.poll_filter["whole"][text]
+
+        for key, value in self.poll_filter["replace"].items():
+            text = text.replace(key,value)
 
         ## Change Vote
         # Set vote if matches valid index
@@ -150,7 +153,6 @@ class APIhttp(APIbase):
             if int(text) < len(self.poll_valid)+1 and int(text) > 0:
                 self.poll[from_name] = self.poll_valid[int(text)-1]
             elif int(text) > 0:
-                print("Converting ["+text+"] "+num2words(int(text)))
                 self.poll[from_name] = num2words(int(text))
 
             if self.poll_valid:

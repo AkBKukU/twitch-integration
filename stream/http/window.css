@@ -133,6 +133,7 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
     right:    20px;
     max-width:800px;
     margin:   0px;
+    margin-right:    20px;
     padding:  20px;
 
     /*Box Functional*/
