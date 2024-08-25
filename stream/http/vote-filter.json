@@ -1,0 +1,30 @@
+ {
+ "whole":
+	{
+	"go north":"north",
+	"n":"north",
+	"go south":"south",
+	"s":"south",
+	"go east":"east",
+	"e":"east",
+	"go west":"west",
+	"w":"west",
+	"go northeast":"northeast",
+	"ne":"northeast",
+	"go northwest":"northwest",
+	"nw":"northwest",
+	"go southeast":"southeast",
+	"se":"southeast",
+	"go southwest":"southwest",
+	"sw":"southwest",
+	"go up":"up",
+	"go down":"down"
+	},
+
+ "replace":
+	{
+	"get":"take",
+	"grab":"take"
+	}
+
+ }
