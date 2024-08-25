@@ -156,6 +156,11 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
     text-shadow: 0px 0px 8px black;
 }
 
+#poll-list > li
+{
+    margin-bottom:    0.25em;
+}
+
 #poll-list > li > div.poll-bar
 {
     /*Sub Window Postioning*/
@@ -167,7 +172,7 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
     margin-top:    -1.35em;
 
     /*Box Cosmetic*/
-    background-color: rgba(127, 127, 127, 0.35);
+    background-color: rgba(127, 127, 127, 0.55);
 }
 .poll-count
 {
