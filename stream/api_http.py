@@ -74,10 +74,11 @@ class APIhttp(APIbase):
         return r
 
     async def poll_check(self):
-        # If there are 10 identical messages in self.poll start poll and add message to valid
-        # after, if there are 10 other identical messages add new valid option and display
-        # if voter messages after voting ignore, unless valid vote number
+        # If there are self.poll_threshold identical messages in self.poll start poll and add
+        # message to valid after, if there are 10 other identical messages add new valid option
+        # and display if voter messages after voting ignore, unless valid vote number
         print("####### Poll Check")
+
         poll_count={}
         for k, v in self.poll.items():
             if v not in poll_count:
@@ -128,6 +129,7 @@ class APIhttp(APIbase):
 
     async def poll_clear(self):
         self.poll = {}
+        self.poll_total = 0
         self.poll_valid = []
         self.poll_output = {}
         self.poll_output["title"] = "Dynamic Poll"
@@ -147,18 +149,23 @@ class APIhttp(APIbase):
         for key, value in self.poll_filter["replace"].items():
             text = text.replace(key,value)
 
-        ## Change Vote
-        # Set vote if matches valid index
+        ## Vote by number
         try:
+            # Set vote if matches valid index
             if int(text) < len(self.poll_valid)+1 and int(text) > 0:
+                # Getting vote word by index to store makes this easier
                 self.poll[from_name] = self.poll_valid[int(text)-1]
-            elif int(text) > 0:
-                self.poll[from_name] = num2words(int(text))
 
-            if self.poll_valid:
+                # Subtract or add time to make poll faster but fair
                 win = max(self.poll_output["data"], key=self.poll_output["data"].get)
                 if win == self.poll[from_name]:
                     self.poll_output["remaining"] -= 2
+                if win != self.poll[from_name]:
+                    self.poll_output["remaining"] += 1
+            # Convert vote into word
+            elif int(text) > 0:
+                self.poll[from_name] = num2words(int(text))
+
             return return_state
         except ValueError:
             pass
@@ -169,19 +176,33 @@ class APIhttp(APIbase):
             # record anything
             self.poll[from_name] = text
 
-            if self.poll_valid:
+            # If vote was valid subtract or add time to make poll faster but fair
+            if self.poll[from_name] in self.poll_valid:
                 win = max(self.poll_output["data"], key=self.poll_output["data"].get)
                 if win == text:
                     self.poll_output["remaining"] -= 2
+                if win != self.poll[from_name]:
+                    self.poll_output["remaining"] += 1
             return return_state
 
         ## Change Vote
-        # Set vote if matches valid
+        # Set new vote if matches valid
         if text in self.poll_valid:
+            old_vote = self.poll[from_name]
             self.poll[from_name] = text
+
+
+            # If old vote was invalid
+            # subtract or add time to make poll faster but fair
+            if old_vote not in self.poll_valid:
+                win = max(self.poll_output["data"], key=self.poll_output["data"].get)
+                if win == text:
+                    self.poll_output["remaining"] -= 2
+                if win != self.poll[from_name]:
+                    self.poll_output["remaining"] += 1
             return return_state
 
-        # Update vote if not valid
+        # Update old vote and new vote are not valid
         if self.poll[from_name] not in self.poll_valid:
             self.poll[from_name] = text
             return return_state
@@ -208,6 +229,8 @@ class APIhttp(APIbase):
     def poll_config(self,title):
         self.poll_output["title"] = title
         self.poll_output["remaining"] += 60
+        if self.poll_output["remaining"] > 180:
+            self.poll_output["remaining"] = 180
 
 
     def index(self):
