@@ -80,15 +80,42 @@ function poll_read(poll_data)
     }else{
        poll_title.textContent = "Done: "+ poll_data.title;
     }
+    total = 0
+    win_key = ""
+    win_value = 0
+    for (const [key, value] of Object.entries(poll_data.data))
+    {
+      total += value;
+      if (value > win_value)
+      {
+        win_key = key;
+        win_value = value;
+      }
+    }
 
     for (const [key, value] of Object.entries(poll_data.data)) {
 
         li = document.createElement("li");
 
+        div = document.createElement("div");
+        div.style.width = ((value/total)*100)+"%"
+        if ( poll_data.remaining <= 1 && win_key == key)
+        {
+          div.style.backgroundColor = "rgba(255,32, 32, 0.45)";
+        }
+        div.classList.add("poll-bar");
+
         var text = document.createElement("span");
-        text.innerHTML = key+": " + value;
+        text.innerHTML = key
+        text.classList.add("poll-text");
         li.appendChild(text)
 
+        var count = document.createElement("span");
+        count.innerHTML = value
+        count.classList.add("poll-count");
+        li.appendChild(count)
+
+        li.appendChild(div)
         poll_list.appendChild(li)
 
     };

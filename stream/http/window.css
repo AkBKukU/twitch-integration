@@ -60,11 +60,13 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
     /*Box Functional*/
     display: flex;
     padding-right:1em;
+    padding-right:1em;
     overflow: hidden;
 
     /*Box Cosmetic*/
     background-color: rgba(1, 0, 0, 0.85);
-    border-radius: 60px;
+    border-left: 20px solid #00F;
+
 
     /*Text Cosmetic*/
     font-family: sans-serif;
@@ -75,7 +77,7 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
 #chat-list{
     /*Box Functional*/
     margin: 0px;
-    padding-bottom: 1em;
+    padding-bottom: 0em;
     overflow: hidden;
     align-self: flex-end;
 
@@ -113,7 +115,7 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
 
     /*Box Cosmetic*/
     background-color: rgba(1, 0, 0, 0.85);
-    border-left: 20px solid #00F;
+    border-left: 20px solid #0F0;
 
     /*Text Functional*/
     font-size: 1.7em;
@@ -135,13 +137,15 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
     margin:   0px;
     margin-right:    20px;
     padding:  20px;
+    padding-bottom:  0px;
+    padding-top:  0.5em;
 
     /*Box Functional*/
     padding-right:1em;
     border-left: 20px solid #F00;
 
     /*Box Cosmetic*/
-    background-color: rgba(1, 0, 0, 0.85);
+    background-color: rgba(0, 0, 0, 0.85);
 
     /*Text Functional*/
     font-size: 1.7em;
@@ -149,12 +153,38 @@ body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden;}
     /*Text Cosmetic*/
     color: white;
     font-family: sans-serif;
-    font-weight: bold;
     text-shadow: 0px 0px 8px black;
+}
+
+#poll-list > li > div.poll-bar
+{
+    /*Sub Window Postioning*/
+    height:   1.5em;
+    padding-left:    2em;
+    margin-left:    -2em;
+    padding-right:    1em;
+    margin-right:    -1em;
+    margin-top:    -1.35em;
+
+    /*Box Cosmetic*/
+    background-color: rgba(127, 127, 127, 0.35);
+}
+.poll-count
+{
+    clear:    right;
+    float:    right;
+}
+
+.poll-text
+{
+    /*Text Functional*/
+    font-weight: bold;
+
 }
 
 #poll-title
 {
     margin-top:   0px;
     margin-bottom:   0px;
+    border-bottom: 3px solid #FFF;
 }
