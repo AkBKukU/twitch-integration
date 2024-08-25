@@ -12,6 +12,7 @@ from multiprocessing import Process
 import os
 import bleach
 import json
+from num2words import num2words
 from datetime import datetime
 
 class APIhttp(APIbase):
@@ -43,6 +44,8 @@ class APIhttp(APIbase):
 
         # Set headers for server
         self.app.after_request(self.add_header)
+
+        self.poll_filter=json.load(open('stream/http/vote-filter.json'))
 
         self.chat = []
         self.subs = []
@@ -98,6 +101,7 @@ class APIhttp(APIbase):
                 print(opt+": "+str(poll_count[opt]))
                 poll_data[opt] = poll_count[opt]
             self.poll_output["data"] = poll_data
+            self.poll_output["rar"] = self.poll
 
             with open(self.json_poll, 'w', encoding="utf-8") as output:
                 output.write(json.dumps(self.poll_output))
@@ -137,14 +141,26 @@ class APIhttp(APIbase):
     def poll_vote(self, from_name, text):
         return_state = "show"
 
+        for filter_text in self.poll_filter["filter"]:
+            text.replace(filter_text,"")
+
         ## Change Vote
         # Set vote if matches valid index
-        #try:
-        #    if int(text) < len(self.poll_valid)+1 and int(text) > 0:
-        #        self.poll[from_name] = self.poll_valid[int(text)]
-        #        return return_state
-        #except ValueError:
-        #    pass
+        try:
+            if int(text) < len(self.poll_valid)+1 and int(text) > 0:
+                self.poll[from_name] = self.poll_valid[int(text)-1]
+            elif int(text) > 0:
+                print("Converting ["+text+"] "+num2words(int(text)))
+                self.poll[from_name] = num2words(int(text))
+
+            if self.poll_valid:
+                win = max(self.poll_output["data"], key=self.poll_output["data"].get)
+                if win == self.poll[from_name]:
+                    self.poll_output["remaining"] -= 2
+            return return_state
+        except ValueError:
+            pass
+
 
         # Haven't chated since last poll
         if from_name not in self.poll:

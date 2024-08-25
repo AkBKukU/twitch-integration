@@ -25,6 +25,32 @@ class APItwitchTest(APItwitch):
         self.service_name = "TwitchTest"
         self.procs = []
         self.fake_votes=[
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go North",
+                "Go South",
+                "Go South",
+                "Go South",
+                "Go South",
+                "Go South",
+                "Go South",
+                "Go South",
+                "Eat Sword",
+                "Pet Grue",
+                "Lick Dirt",
+                "Stab self with sword",
+                "jump in chasm",
+                "eat egg",
+                "look",
                 "1",
                 "1",
                 "1",
@@ -36,18 +62,7 @@ class APItwitchTest(APItwitch):
                 "2",
                 "2",
                 "2",
-                "2",
-                "2",
-                "2",
-                "2",
-                "3",
-                "4",
-                "5",
-                "6",
-                "7",
-                "8",
-                "9",
-                "0"
+                "throw sword"
                 ]
         self.fake_names=[
             {"from":"Fred","color":""},
@@ -113,7 +128,7 @@ class APItwitchTest(APItwitch):
         message={
                 "from": self.fake_names[0]["from"],
                 "color": color,
-                "text": self.fake_votes[0]+" vote",
+                "text": self.fake_votes[0]+"",
                 "time": str(datetime.now().isoformat()).replace(":","-"),
                 "donate": 0
             }
