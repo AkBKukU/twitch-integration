@@ -30,6 +30,9 @@ class APIhttp(APIbase):
 
         # Define routes in class to use with flask
         self.app.add_url_rule('/','home', self.index)
+        self.app.add_url_rule('/api/donate.json','api-donate', self.apiDonate)
+        self.app.add_url_rule('/api/chat.json','api-chat', self.apiChat)
+        self.app.add_url_rule('/api/interact.json','api-interact', self.apiInteract)
         self.app.add_url_rule('/chat/','chat', self.chat)
         self.app.add_url_rule('/chat/chat.json','data', self.chatJsonChat)
         self.app.add_url_rule('/read/','read', self.read)
@@ -53,6 +56,14 @@ class APIhttp(APIbase):
         self.poll_output = {}
         self.poll_valid = []
         self.poll_threshold = 3
+
+        self.api_chat = []
+        self.api_interact = []
+        self.api_donate = []
+        self.json_api_chat='/tmp/stream_api_chat.json'
+        self.json_api_interact='/tmp/stream_api_interact.json'
+        self.json_api_donate='/tmp/stream_api_donate.json'
+
         self.json_chat= '/tmp/stream_http_chat.json'
         self.json_subs= '/tmp/stream_http_subs.json'
         self.json_poll= '/tmp/stream_http_poll.json'
@@ -285,8 +296,38 @@ class APIhttp(APIbase):
         """ Simple class function to send JSON to browser """
         return send_file(self.json_poll)
 
+    def apiChat(self):
+        """ Simple class function to send JSON to browser """
+        return send_file(self.json_api_chat)
+
+    def apiDonate(self):
+        """ Simple class function to send JSON to browser """
+        return send_file(self.json_api_donate)
+
+    def apiInteract(self):
+        """ Simple class function to send JSON to browser """
+        return send_file(self.json_api_interact)
+
     def receive_donate(self,from_name,amount,message,benefits=None):
         """Output message to CLI for chat"""
+        
+        # Add to host API data
+        if (from_name != "api"):
+            if len(self.api_donate) > 30:
+                self.api_donate.pop(0)
+
+            self.api_donate.append(
+                    {
+                        "timestamp":datetime.now().isoformat().replace(":","-"),
+                        "from":from_name,
+                        "amount":amount, 
+                        "text":message
+                    }
+                )
+            with open(self.json_api_donate, 'w', encoding="utf-8") as output:
+                output.write(json.dumps(self.api_donate))
+
+        # Handle web display
         message = bleach.clean(message,tags={})
 
         print ("something Recieved: "+amount)
@@ -308,6 +349,23 @@ class APIhttp(APIbase):
 
     def receive_chat(self,data):
         """Output message to CLI for chat"""
+        
+        # Add to host API data
+        if len(self.api_chat) > 30:
+            self.api_chat.pop(0)
+
+        self.api_chat.append(
+                {
+                    "timestamp":datetime.now().isoformat().replace(":","-"),
+                    "from":data["from"],
+                    "text":data["text"],
+                    "donate":data["donate"]
+                }
+            )
+        with open(self.json_api_chat, 'w', encoding="utf-8") as output:
+            output.write(json.dumps(self.api_chat))
+
+        # Web display data
         data["text"] = bleach.clean(data["text"],tags={})
         self.chat.append(data)
         if self.poll_vote(data["from"], data["text"].lower().strip()) == "hide":
@@ -321,6 +379,23 @@ class APIhttp(APIbase):
         return
 
     def receive_interact(self,from_name,kind,message):
+        # Add to host API data
+        if len(self.api_interact) > 30:
+            self.api_interact.pop(0)
+
+        self.api_interact.append(
+                {
+                    "timestamp":datetime.now().isoformat().replace(":","-"),
+                    "from":from_name,
+                    "kind":kind,
+                    "text":message
+                }
+            )
+        with open(self.json_api_interact, 'w', encoding="utf-8") as output:
+            output.write(json.dumps(self.api_interact))
+
+
+
         if kind == "Mod Chat Command":
             if message.find("!poll") == 0:
                 self.poll_config(message.lower().replace("!poll","").strip())
