@@ -36,6 +36,7 @@ async def main():
     # Start async modules
     L = await asyncio.gather(
         twitch.connect(),
+        http.connect(),
         youtube.connect(),
         main_loop()
     )
@@ -71,7 +72,7 @@ twitch.register_donate(outtest.receive_donate)
 youtube.register_chat(http.receive_chat)
 
 # Start non async
-http.connect()
+
 
 asyncio.run(main())
 
