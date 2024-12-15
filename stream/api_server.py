@@ -24,6 +24,8 @@ class APIserver(APIbase):
 
     async def connect(self):
         self.delay_callback("get_chat", self.update_rate, self.get_chat)
+        self.delay_callback("get_donate", self.update_rate, self.get_donate)
+        self.delay_callback("get_interact", self.update_rate, self.get_interact)
 
     async def get_chat(self):
         with urllib.request.urlopen(self.server_url+"/api/chat.json") as url:
@@ -69,9 +71,9 @@ class APIserver(APIbase):
                     self.api_donate.pop(0)
                 self.api_donate.append(data[i])
 
-                self.emit_donate(data['from'],
-                    str(data['amount']),
-                    data['text']
+                self.emit_donate(data[i]['from'],
+                    str(data[i]['amount']),
+                    data[i]['text']
                     )
 
 
@@ -84,6 +86,7 @@ class APIserver(APIbase):
 
 
         for i in range(0,len(data)):
+            print(data[i]["from"])
             newmessage=True
             for j in range(0,len(self.api_interact)):
                 if data[i]["timestamp"] == self.api_interact[j]["timestamp"]:
@@ -94,9 +97,9 @@ class APIserver(APIbase):
                     self.api_interact.pop(0)
                 self.api_interact.append(data[i])
 
-                self.emit_interact(data['from'],
-                    data['kind'],
-                    data['text']
+                self.emit_interact(data[i]['from'],
+                    data[i]['kind'],
+                    data[i]['text']
                     )
 
 
