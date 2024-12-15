@@ -3,7 +3,9 @@
     <title>Live Chat View</title>
     <link rel="stylesheet" type="text/css" href="read.css">
     <script>
-
+function adjust(color, amount) {
+				    return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+}
 
 function json_read(chat_data)
 {
@@ -20,12 +22,14 @@ function json_read(chat_data)
 
         var name = document.createElement("span");
         name.innerHTML = c['from'];
-        name.style.color = c['color'];
+        name.style.color = adjust(c['color'],50);
         name.classList.add("name");
         li.appendChild(name)
 
         var text = document.createElement("span");
         text.innerHTML = ": " + c['text'];
+	text.innerHTML = text.innerHTML.replace(/(http:\/\/[^\s]+)/g, "<a target='_new' href='$1'>$1</a>");
+	text.innerHTML = text.innerHTML.replace(/(https:\/\/[^\s]+)/g, "<a target='_new' href='$1'>$1</a>");
         text.classList.add("text");
         li.appendChild(text)
 

@@ -31,3 +31,6 @@ ul > :first-child
   margin-top: auto;
 }
 
+a {
+	color: #fff;
+}
