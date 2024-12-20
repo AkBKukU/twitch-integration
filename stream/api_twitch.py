@@ -26,6 +26,7 @@ class APItwitch(APIbase):
         super().__init__(key_path)
         self.service_name = "Twitch"
         self.auth_token = auth_token
+        self.buffer_subs = []
 
 
     async def connect(self):
