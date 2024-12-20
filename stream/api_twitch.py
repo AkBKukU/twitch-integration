@@ -154,7 +154,7 @@ class APItwitch(APIbase):
             self.cancel_delay("sub_buffer")
         self.buffer_subs.append(data)
 
-        delay_callback("sub_buffer", 5000, self.callback_flush_subs)
+        self.delay_callback("sub_buffer", 5000, self.callback_flush_subs)
 
     async def callback_flush_subs(self):
 
@@ -177,7 +177,7 @@ class APItwitch(APIbase):
                         gift_count+=1
                     else:
                         gift_data['recipient_display_name'] = str(gift_count) + " viewers"
-                        callback_sub_single(None,gift_data)
+                        self.callback_sub_single(None,gift_data)
                         gift_data['display_name'] = data['display_name']
                         gift_data['user_name'] = data['user_name']
                         gift_data['sub_plan'] = data['sub_plan']
@@ -185,7 +185,7 @@ class APItwitch(APIbase):
 
             if gift_data['display_name'] != "":
                 gift_data['recipient_display_name'] = str(gift_count) + " viewers"
-                callback_sub_single(None,gift_data)
+                self.callback_sub_single(None,gift_data)
 
             self.buffer_subs.clear()
 
