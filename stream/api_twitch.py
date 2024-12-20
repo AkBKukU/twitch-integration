@@ -149,6 +149,47 @@ class APItwitch(APIbase):
 
 
     async def callback_subs(self, uuid: UUID, data: dict):
+        if "sub_buffer" in self.tasks.keys():
+            self.cancel_delay("sub_buffer")
+        self.buffer_subs.append(data)
+
+        delay_callback("sub_buffer", 5000, self.callback_flush_subs):
+
+    async def callback_flush_subs(self):
+
+        if len(self.buffer_subs) == 1:
+            self.callback_sub_single(self.buffer_subs[0])
+            self.buffer_subs.pop(0)
+        else:
+            gift_data={}
+            gift_data['context'] = "subgift"
+            gift_data['display_name']=""
+            gift_count=0
+            for data in  self.buffer_subs:
+                if str(data['context']) ==  "subgift":
+                    if gift_data['display_name'] == "":
+                        gift_data['display_name'] = data['display_name']
+                        gift_data['user_name'] = data['user_name']
+                        gift_data['sub_plan'] = data['sub_plan']
+
+                    if gift_data['display_name'] == data['display_name']:
+                        gift_count+=1
+                    else:
+                        gift_data['recipient_display_name'] = str(gift_count) + " viewers"
+                        callback_sub_single(None,gift_data)
+                        gift_data['display_name'] = data['display_name']
+                        gift_data['user_name'] = data['user_name']
+                        gift_data['sub_plan'] = data['sub_plan']
+                        gift_count=1
+
+            if gift_data['display_name'] != "":
+                gift_data['recipient_display_name'] = str(gift_count) + " viewers"
+                callback_sub_single(None,gift_data)
+
+
+
+
+    async def callback_sub_single(self, uuid: UUID, data: dict):
         """Subscription handler"""
         self.log("callback_subs",json.dumps(data))
 

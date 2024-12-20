@@ -50,6 +50,17 @@ class APIbase(APIKey):
         """ Register delayed callback  """
         self.tasks[name] = asyncio.ensure_future(self.delay(time_ms, callback))
 
+    async def cancel_delay(self,name):
+        """ Delay execution of callback function """
+        self.tasks[name].cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            print("Emded task")
+
+        self.tasks.pop(name, None)
+
+
     async def cancel_delays(self):
         """ Delay execution of callback function """
         for task in self.tasks:
