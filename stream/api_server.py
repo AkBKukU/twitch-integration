@@ -18,6 +18,7 @@ class APIserver(APIbase):
         self.api_chat = []
         self.api_interact = []
         self.api_donate = []
+        self.api_buffer = 30
         self.update_rate = 500
 
 
@@ -40,7 +41,7 @@ class APIserver(APIbase):
                     newmessage=False
 
             if newmessage:
-                if len(self.api_chat) > 0:
+                if len(self.api_chat) > self.api_buffer:
                     self.api_chat.pop(0)
                 self.api_chat.append(data[i])
                 message={
@@ -67,7 +68,7 @@ class APIserver(APIbase):
                     newmessage=False
 
             if newmessage:
-                if len(self.api_donate) > 0:
+                if len(self.api_donate) > self.api_buffer:
                     self.api_donate.pop(0)
                 self.api_donate.append(data[i])
 
@@ -93,7 +94,7 @@ class APIserver(APIbase):
                     newmessage=False
 
             if newmessage:
-                if len(self.api_interact) > 0:
+                if len(self.api_interact) > self.api_buffer:
                     self.api_interact.pop(0)
                 self.api_interact.append(data[i])
 
