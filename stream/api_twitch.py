@@ -153,7 +153,7 @@ class APItwitch(APIbase):
             self.cancel_delay("sub_buffer")
         self.buffer_subs.append(data)
 
-        delay_callback("sub_buffer", 5000, self.callback_flush_subs):
+        delay_callback("sub_buffer", 5000, self.callback_flush_subs)
 
     async def callback_flush_subs(self):
 
