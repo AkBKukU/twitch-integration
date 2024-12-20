@@ -187,7 +187,7 @@ class APItwitch(APIbase):
                 gift_data['recipient_display_name'] = str(gift_count) + " viewers"
                 callback_sub_single(None,gift_data)
 
-
+            self.buffer_subs.clear()
 
 
     async def callback_sub_single(self, uuid: UUID, data: dict):
