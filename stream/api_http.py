@@ -61,8 +61,14 @@ class APIhttp(APIbase):
         self.api_interact = []
         self.api_donate = []
         self.json_api_chat='/tmp/stream_api_chat.json'
+        if os.path.isfile(self.json_api_chat):
+            os.remove(self.json_api_chat)
         self.json_api_interact='/tmp/stream_api_interact.json'
+        if os.path.isfile(self.json_api_interact):
+            os.remove(self.json_api_interact)
         self.json_api_donate='/tmp/stream_api_donate.json'
+        if os.path.isfile(self.json_api_donate):
+            os.remove(self.json_api_donate)
 
         self.json_chat= '/tmp/stream_http_chat.json'
         self.json_subs= '/tmp/stream_http_subs.json'
