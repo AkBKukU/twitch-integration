@@ -24,7 +24,7 @@ class APIbase(APIKey):
 
     def log(self,filename,text):
         """logging output for data"""
-        log_path="log/"+self.service_name
+        log_path="log/"+datetime.today().strftime('%Y-%m-%d')+"/"+self.service_name+"/"+filename
         # Make log dir if not there
         if not os.path.exists(log_path):
             os.makedirs(log_path)
@@ -52,7 +52,8 @@ class APIbase(APIKey):
 
     async def cancel_delay(self,name):
         """ Delay execution of callback function """
-        self.tasks[name].cancel()
+        task = self.tasks[name]
+        task.cancel()
         try:
             await task
         except asyncio.CancelledError:

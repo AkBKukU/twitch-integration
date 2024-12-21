@@ -7,6 +7,7 @@ from uuid import UUID
 import json
 import time
 import os
+import glob
 from datetime import datetime
 import random
 
@@ -90,30 +91,7 @@ class APItwitchTest(APItwitch):
 
     async def process(self):
         """multiprocess background task to look for test files"""
-        # Check for point redeem
-        points="test/points.json"
-        if os.path.isfile(points):
-            with open(points, 'r') as f:
-                data = json.load(f)
-                await self.callback_points("1337", data)
-            os.rename(points,"test/done_points.json")
 
-        # Check for bit cheer
-        bits="test/bits.json"
-        if os.path.isfile(bits):
-            with open(bits, 'r') as f:
-                data = json.load(f)
-                await self.callback_bits("1337", data)
-            os.rename(bits,"test/done_bits.json")
-
-        # Check for subs
-        subs="test/subs.json"
-        if os.path.isfile(subs):
-            with open(subs, 'r') as f:
-                print("Sending Sub")
-                data = json.load(f)
-                await self.callback_subs("1337", data)
-            os.rename(subs,"test/done_subs.json")
 
         # Create random colors from names
         random.shuffle(self.fake_names)
@@ -141,6 +119,7 @@ class APItwitchTest(APItwitch):
         """Override parent API connection and start background test"""
         print("Not Connecting to twitch")
         self.delay_callback("fake_data", 1000, self.process)
+        self.delay_callback("log_replay", 1000, self.log_replay)
         return
 
 

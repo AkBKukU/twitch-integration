@@ -13,6 +13,7 @@ import asyncio
 from uuid import UUID
 import json
 from pathlib import PurePath
+import glob, os
 
 
 class APItwitch(APIbase):
@@ -27,6 +28,8 @@ class APItwitch(APIbase):
         self.service_name = "Twitch"
         self.auth_token = auth_token
         self.buffer_subs = []
+        self.sub_coalesce_delay = 500
+        
 
 
     async def connect(self):
@@ -70,6 +73,35 @@ class APItwitch(APIbase):
         self.chat.start()
 
         return
+
+    async def log_replay(self):
+        # Check for point redeem
+        for file in glob.glob("test/*_points.log"):
+            if os.path.isfile(file):
+                with open(file, 'r') as f:
+                    data = json.load(f)
+                    await self.callback_points("1337", data)
+                os.remove(file)
+        
+        # Check for bit cheer
+        for file in glob.glob("test/*_bits.log"):
+            if os.path.isfile(file):
+                with open(file, 'r') as f:
+                    data = json.load(f)
+                    await self.callback_bits("1337", data)
+                os.remove(file)
+
+        # Check for subs
+        for file in glob.glob("test/*_subs.log"):
+            if os.path.isfile(file):
+                with open(file, 'r') as f:
+                    print("Sending Sub")
+                    data = json.load(f)
+                    await self.callback_subs("1337", data)
+                os.remove(file)
+
+        self.delay_callback("log_replay", 1000, self.log_replay)
+
 
     async def disconnect(self):
         """Gracefully disconnect from Twith API"""
@@ -150,16 +182,20 @@ class APItwitch(APIbase):
 
 
     async def callback_subs(self, uuid: UUID, data: dict):
+        if str(data['context']) !=  "subgift":
+            await self.callback_sub_single("1337",data)
+            return
+
         if "sub_buffer" in self.tasks.keys():
-            self.cancel_delay("sub_buffer")
+            await self.cancel_delay("sub_buffer")
         self.buffer_subs.append(data)
 
-        self.delay_callback("sub_buffer", 5000, self.callback_flush_subs)
+        self.delay_callback("sub_buffer", self.sub_coalesce_delay, self.callback_flush_subs)
 
     async def callback_flush_subs(self):
 
         if len(self.buffer_subs) == 1:
-            self.callback_sub_single(self.buffer_subs[0])
+            await self.callback_sub_single("1337",self.buffer_subs[0])
             self.buffer_subs.pop(0)
         else:
             gift_data={}
@@ -177,7 +213,7 @@ class APItwitch(APIbase):
                         gift_count+=1
                     else:
                         gift_data['recipient_display_name'] = str(gift_count) + " viewers"
-                        self.callback_sub_single(None,gift_data)
+                        await self.callback_sub_single("1337",gift_data)
                         gift_data['display_name'] = data['display_name']
                         gift_data['user_name'] = data['user_name']
                         gift_data['sub_plan'] = data['sub_plan']
@@ -185,7 +221,7 @@ class APItwitch(APIbase):
 
             if gift_data['display_name'] != "":
                 gift_data['recipient_display_name'] = str(gift_count) + " viewers"
-                self.callback_sub_single(None,gift_data)
+                await self.callback_sub_single("1337",gift_data)
 
             self.buffer_subs.clear()
 
