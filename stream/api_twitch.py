@@ -70,6 +70,7 @@ class APItwitch(APIbase):
 
 
         self.chat.register_event(ChatEvent.MESSAGE, self.callback_chat)
+        self.delay_callback("log_replay", 1000, self.log_replay)
         self.chat.start()
 
         return
