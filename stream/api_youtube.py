@@ -216,7 +216,7 @@ class APIyoutube(APIbase):
             # Reset slow scaling
             self.chat_slow = 1
 
-            chat_callback(chat)
+            callback_chat(chat)
 
             print("chat wait"+str(chat['pollingIntervalMillis']))
             # Get next batch of messages
