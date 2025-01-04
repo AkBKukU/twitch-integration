@@ -77,7 +77,7 @@ class APItwitch(APIbase):
 
     async def log_replay(self):
         # Check for point redeem
-        for file in glob.glob("test/*_points.log"):
+        for file in glob.glob("test-twitch/*_points.log"):
             if os.path.isfile(file):
                 with open(file, 'r') as f:
                     data = json.load(f)
@@ -85,7 +85,7 @@ class APItwitch(APIbase):
                 os.remove(file)
         
         # Check for bit cheer
-        for file in glob.glob("test/*_bits.log"):
+        for file in glob.glob("test-twitch/*_bits.log"):
             if os.path.isfile(file):
                 with open(file, 'r') as f:
                     data = json.load(f)
@@ -93,7 +93,7 @@ class APItwitch(APIbase):
                 os.remove(file)
 
         # Check for subs
-        for file in glob.glob("test/*_subs.log"):
+        for file in glob.glob("test-twitch/*_subs.log"):
             if os.path.isfile(file):
                 with open(file, 'r') as f:
                     print("Sending Sub")

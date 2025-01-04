@@ -11,6 +11,9 @@ from oauth2client.tools import argparser, run_flow
 from pprint import pprint
 import json
 import httplib2
+from pathlib import PurePath
+import glob, os
+from iso4217 import Currency
 
 
 """ Youtube Live Chat API Logic
@@ -87,8 +90,20 @@ class APIyoutube(APIbase):
 
 
         self.delay_callback("get_broadcasts", 60000, self.get_broadcasts)
+        self.delay_callback("log_replay", 1000, self.log_replay)
         return
 
+    async def log_replay(self):
+        # Check for subs
+        for file in glob.glob("test-youtube/*_chat.log"):
+            if os.path.isfile(file):
+                with open(file, 'r') as f:
+                    print("Sending Chat")
+                    data = json.load(f)
+                    await self.callback_chat(data)
+                os.remove(file)
+
+        self.delay_callback("log_replay", 1000, self.log_replay)
 
     async def disconnect(self):
         """Google is read only, no need to disconnect"""
@@ -201,32 +216,13 @@ class APIyoutube(APIbase):
             # Reset slow scaling
             self.chat_slow = 1
 
-            # Go through all messages
-            for c in chat['items']:
-
-                print("chat:")
-                #print(pprint(c))
-                # Create random colors from names
-                color="#"
-                letters=str(c['authorDetails']['displayName']).lower()[:3]
-                print(letters)
-                for col in list(letters.encode('ascii')):
-                    col=(col-80)
-                    col=col*6
-                    color+=str(hex(col))[2:]
-
-                message={
-                        "from": c['authorDetails']['displayName'],
-                        "color": color,
-                        "text": str(c['snippet']['displayMessage']),
-                        "donate": 0 # not currently used
-                    }
-                self.log("callback_chat",json.dumps(message))
-                self.emit_chat(message)
+            chat_callback(chat)
 
             print("chat wait"+str(chat['pollingIntervalMillis']))
             # Get next batch of messages
             self.delay_callback("chat_polling", chat['pollingIntervalMillis']+100+self.chat_slow_add, self.chat_update)
+
+
         else:
             self.chat_slow += 1
 
@@ -240,3 +236,46 @@ class APIyoutube(APIbase):
 
         return
 
+    async def callback_chat(self, chat):
+
+        # Go through all messages
+        for c in chat['items']:
+
+            print("chat:")
+            #print(pprint(c))
+            # Create random colors from names
+            color="#"
+            letters=str(c['authorDetails']['displayName']).lower()[:3]
+            print(letters)
+            for col in list(letters.encode('ascii')):
+                col=(col-80)
+                col=col*6
+                color+=str(hex(col))[2:]
+
+            message={
+                    "from": c['authorDetails']['displayName'],
+                    "color": color,
+                    "text": str(c['snippet']['displayMessage']),
+                    "donate": 0 # not currently used
+                }
+            self.log("callback_chat",json.dumps(message))
+            self.emit_chat(message)
+
+            # Handle superchats
+            if str(c['snippet']['type']) == "superChatEvent" :
+
+                value = int(c['snippet']['superChatDetails']['amountMicros']) / 1000000
+
+                # If the value is integral, convert it to an int
+                if value == int(value):
+                    value = int(value)
+
+                # Build name to also state donate value
+                name = c['authorDetails']['displayName']
+                name += " gave " + str(value) + " " + Currency(c['snippet']['superChatDetails']['currency']).currency_name + " and "
+
+                # Send data to receivers
+                self.emit_donate(name,
+                                    str(100)+"b", # Youtube UI enforces min already
+                                    c['snippet']['superChatDetails']['userComment']
+                                    )
